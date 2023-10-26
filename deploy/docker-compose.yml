@@ -1,0 +1,73 @@
+version: '3.9'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./deploy/Dockerfile
+      target: prod
+    image: server:${SERVER_VERSION:-latest}
+    restart: always
+    env_file:
+    - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SERVER_HOST: 0.0.0.0
+      SERVER_DB_HOST: server-db
+      SERVER_DB_PORT: 5432
+      SERVER_DB_USER: server
+      SERVER_DB_PASS: server
+      SERVER_DB_BASE: server
+      SERVER_REDIS_HOST: server-redis
+
+  db:
+    image: postgres:13.8-bullseye
+    hostname: server-db
+    environment:
+      POSTGRES_PASSWORD: "server"
+      POSTGRES_USER: "server"
+      POSTGRES_DB: "server"
+    volumes:
+    - server-db-data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: pg_isready -U server
+      interval: 2s
+      timeout: 3s
+      retries: 40
+
+  migrator:
+    image: server:${SERVER_VERSION:-latest}
+    restart: "no"
+    command: alembic upgrade head
+    environment:
+      SERVER_DB_HOST: server-db
+      SERVER_DB_PORT: 5432
+      SERVER_DB_USER: server
+      SERVER_DB_PASS: server
+      SERVER_DB_BASE: server
+    depends_on:
+      db:
+        condition: service_healthy
+
+  redis:
+    image: bitnami/redis:6.2.5
+    hostname: "server-redis"
+    restart: always
+    environment:
+      ALLOW_EMPTY_PASSWORD: "yes"
+    healthcheck:
+      test: redis-cli ping
+      interval: 1s
+      timeout: 3s
+      retries: 50
+
+
+
+volumes:
+  server-db-data:
+    name: server-db-data
