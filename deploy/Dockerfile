@@ -13,6 +13,10 @@ RUN poetry config virtualenvs.create false
 COPY pyproject.toml poetry.lock /app/src/
 WORKDIR /app/src
 
+# Copy from local /var to container /var
+# ADD ../filez/models /var/lib/docker/volumes/filez/
+# COPY ../filez/models /var/lib/docker/volumes/filez/
+
 # Installing requirements
 RUN poetry install --only main
 # Removing gcc

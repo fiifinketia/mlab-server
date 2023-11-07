@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     with environment variables.
     """
 
-    host: str = "127.0.0.1"
+    host: str = "0.0.0.0"
     port: int = 8000
     # quantity of workers for uvicorn
     workers_count: int = 1
@@ -37,10 +37,9 @@ class Settings(BaseSettings):
 
     # Current environment
     environment: str = "dev"
-
     log_level: LogLevel = LogLevel.INFO
     # Variables for the database
-    db_host: str = "localhost"
+    db_host: str = "0.0.0.0"
     db_port: int = 5432
     db_user: str = "server"
     db_pass: str = "server"
@@ -88,6 +87,42 @@ class Settings(BaseSettings):
             password=self.redis_pass,
             path=path,
         )
+
+    @property
+    def models_dir(self) -> str:
+        """
+        Return path to models directory."""
+        # create a path to the models directory
+        models_dir = "/var/lib/docker/volumes/filez-models"
+        # create the directory if it does not exist
+        return models_dir
+
+    @property
+    def datasets_dir(self) -> str:
+        """
+        Return path to datasets directory."""
+        # create a path to the datasets directory
+        datasets_dir = "/var/lib/docker/volumes/filez-datasets"
+        # create the directory if it does not exist
+        return datasets_dir
+
+    @property
+    def jobs_dir(self) -> str:
+        """
+        Return path to jobs directory."""
+        # create a path to the jobs directory
+        jobs_dir = "/var/lib/docker/volumes/filez-jobs"
+        # create the directory if it does not exist
+        return jobs_dir
+
+    @property
+    def results_dir(self) -> str:
+        """
+        Return path to results directory."""
+        # create a path to the results directory
+        results_dir = "/var/lib/docker/volumes/filez-results"
+        # create the directory if it does not exist
+        return results_dir
 
     class Config:
         env_file = ".env"

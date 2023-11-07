@@ -8,8 +8,21 @@ services:
       target: prod
     image: server:${SERVER_VERSION:-latest}
     restart: always
+    # Allow docker to access home directory
+    user: root
+    volumes:
+      # Mount a volume for file uploads.
+    - type: bind
+      source: /Users/disal/work/disal/filez/models
+      target: /var/lib/docker/volumes/filez-models
+    - filez-datasets:/var/lib/docker/volumes/filez-datasets
+    - filez-jobs:/var/lib/docker/volumes/filez-jobs
+    - filez-results:/var/lib/docker/volumes/filez-results
     env_file:
     - .env
+    ports:
+      # Exposes application port.
+    - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
@@ -33,6 +46,8 @@ services:
       POSTGRES_DB: "server"
     volumes:
     - server-db-data:/var/lib/postgresql/data
+    ports:
+    - "5432:5432"
     restart: always
     healthcheck:
       test: pg_isready -U server
@@ -71,3 +86,9 @@ services:
 volumes:
   server-db-data:
     name: server-db-data
+  filez-datasets:
+    name: filez-datasets
+  filez-jobs:
+    name: filez-jobs
+  filez-results:
+    name: filez-results
