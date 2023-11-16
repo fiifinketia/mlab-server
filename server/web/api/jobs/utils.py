@@ -118,7 +118,7 @@ def run_script_in_venv(
     install_requirements = f"pip install -r {model_path}/requirements.txt"
 
     # Prepare the command to run the script with arguments
-    run_script = f"python {script_path} --config {config_path} --result-id {result_id} --model {create_model_path}"
+    run_script = f"python {script_path} --config {config_path} --result_id {result_id} --model {create_model_path}"
 
     # Combine the commands
     command = f"{activate_venv} && {install_requirements} && {run_script}"
