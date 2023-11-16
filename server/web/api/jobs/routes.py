@@ -1,5 +1,6 @@
 """Routes for jobs API."""
 import os
+from typing import Any, Optional
 import uuid
 
 from fastapi import APIRouter, HTTPException
@@ -22,6 +23,7 @@ class JobIn(BaseModel):
     description: str
     owner_id: str
     model_id: uuid.UUID
+    parameters: Optional[dict[str, Any]]
     # tags: list = []
 
 
@@ -31,6 +33,7 @@ class TrainModelIn(BaseModel):
     job_id: uuid.UUID
     user_id: str
     dataset_id: uuid.UUID
+    parameters: dict[str, Any] = {}
 
 
 @api_router.get("/", tags=["jobs"], summary="Get all jobs")
@@ -71,6 +74,12 @@ async def create_job(
     model_path = os.path.join(settings.models_dir, model.path)
     os.system(f"cp {model_path}/config.txt .")
     path = f"/{str_job_id}"
+    parameters = job_in.parameters
+    if parameters is None:
+        parameters = model.parameters
+    else:
+        parameters = {**model.parameters, **parameters}
+
     await Job.objects.create(
         id=job_id,
         name=job_in.name,
@@ -79,18 +88,21 @@ async def create_job(
         # tags=job_in.tags,
         owner_id=job_in.owner_id,
         model_id=job_in.model_id,
-        model_name=model.unique_name,
+        model_name=model.name,
+        parameters=parameters,
     )
     # Path is jobs_root/{job.id} folder
 
 
-@api_router.post("/train", tags=["jobs"], summary="Run job to train model")
+@api_router.post("/train", tags=["jobs", "models", "results"], summary="Run job to train model")
 async def train_model(
     train_model_in: TrainModelIn,
-) -> Result:
+) -> None:
     """Run job to train model."""
     # If dataset_id is defined then file and dataset_name is ignored
     # Else upload new dataset file for user
     dataset = await Dataset.objects.get(id=train_model_in.dataset_id)
     job = await Job.objects.get(id=train_model_in.job_id)
-    return await run_model(dataset=dataset, job=job)
+    # Check dataset type or structure
+    # TODO: Check dataset type or structure
+    await run_model(dataset=dataset, job=job, parameters=train_model_in.parameters)

@@ -13,7 +13,7 @@ services:
     volumes:
       # Mount a volume for file uploads.
     - type: bind
-      source: /Users/disal/work/disal/filez/models
+      source: ${MODELS_DIR?:MODELS_DIR not set}
       target: /var/lib/docker/volumes/filez-models
     - filez-datasets:/var/lib/docker/volumes/filez-datasets
     - filez-jobs:/var/lib/docker/volumes/filez-jobs

@@ -1,5 +1,6 @@
 """JObs model."""
 import datetime
+from typing import Any
 import uuid
 
 import ormar
@@ -22,5 +23,6 @@ class Job(ormar.Model):
     model_name: str = ormar.String(max_length=200)
     owner_id: str = ormar.String(max_length=100)
     path: str = ormar.String(max_length=100, nullable=True)
+    parameters: dict[str, Any] = ormar.JSON(default={})
     created: datetime.datetime = ormar.DateTime(default=datetime.datetime.now)
     modified: datetime.datetime = ormar.DateTime(default=datetime.datetime.now)

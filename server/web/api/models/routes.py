@@ -1,6 +1,9 @@
 """Routes for models API."""
 import os
+from typing import Any
 import uuid
+
+from pydantic import BaseModel
 
 from fastapi import APIRouter, HTTPException
 
@@ -8,6 +11,15 @@ from server.db.models.ml_models import Model
 from server.settings import settings
 
 api_router = APIRouter()
+
+class CreateModelRequest(BaseModel):
+    name: str
+    description: str
+    owner_id: str
+    version: str
+    path: str
+    parameters: dict[str, Any]
+
 
 
 @api_router.get("/", tags=["models"], summary="Get all models")
@@ -18,18 +30,10 @@ async def get_models() -> list[Model]:
 
 @api_router.post("/", tags=["models"], summary="Create a new model")
 async def create_model(
-    name: str,
-    unique_name: str,
-    description: str,
-    owner_id: str,
-    version: str,
-    path: str,
-    # tags: list = [],
+    create_model_request: CreateModelRequest,
 ) -> None:
     """Create a new model."""
-    # Check if model unique_name already exists
-    if await Model.objects.filter(unique_name=unique_name).exists():
-        raise HTTPException(status_code=409, detail=f"Model {unique_name} exists")
+    model_id = uuid.uuid4()
     try:
         os.chdir(settings.models_dir)
     except FileNotFoundError:
@@ -37,18 +41,25 @@ async def create_model(
         os.chdir(settings.models_dir)
 
     # Check if path to model exists
+    path = create_model_request.path
     if not os.path.exists(path):
-        raise HTTPException(status_code=409, detail=f"Path {path} does not exist")
+        raise HTTPException(status_code=404, detail=f"Path {path} does not exist")
     # Get full path to model
     # Create model
     model_id = uuid.uuid4()
+    # Serialize parameters and layers
+    # parameters = []
+    # for parameter in create_model_request.parameters:
+    #     parameters.append(parameter.dict())
+    # layers = []
+    # for layer in create_model_request.layers:
+    #     layers.append(layer.dict())
     await Model.objects.create(
         id=model_id,
-        name=name,
-        description=description,
-        unique_name=unique_name,
-        # tags=tags,
-        owner_id=owner_id,
-        path=path,
-        version=version,
+        name=create_model_request.name,
+        description=create_model_request.description,
+        owner_id=create_model_request.owner_id,
+        version=create_model_request.version,
+        path=create_model_request.path,
+        parameters=create_model_request.parameters,
     )
