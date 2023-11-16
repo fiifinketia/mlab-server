@@ -49,13 +49,15 @@ async def run_model(
         # Replace the entire PARAM dataset_url line with the new dataset path,
         # the dataset path in the config is un
         for key, value in parameters.items():
+            # get the type if float, int, str, bool
+            param_type = type(value).__name__
             filedata = filedata.replace(
-                f"PARAM {key} {old_parameters[key]}",
-                f"PARAM {key} {value}",
+                f"PARAM {key} {param_type} {old_parameters[key]}",
+                f"PARAM {key} {param_type} {value}",
             )
         filedata = filedata.replace(
-            f"PARAM dataset_url {old_parameters['dataset_url']}",
-            f"PARAM dataset_url {dataset_path}",
+            f"PARAM dataset_url str {old_parameters['dataset_url']}",
+            f"PARAM dataset_url str {dataset_path}",
         )
 
         # Save the updated config file
