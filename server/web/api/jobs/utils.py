@@ -42,7 +42,7 @@ async def run_model(
                 # then store the second element as key and third element as value
                 args = line.split(" ")
                 if args[0] == "PARAM":
-                    old_parameters[args[1]] = args[2].strip()
+                    old_parameters[args[1]] = args[3].strip()
 
     with open(f"{job_path}/config.txt", "r") as file:
         filedata = file.read()
