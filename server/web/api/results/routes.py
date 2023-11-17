@@ -45,11 +45,11 @@ async def submit_train_results(
     form = await request.form()
     # form_files: list[UploadFile] = form["files"] 
     metrics = {}
-    history = {}
+    history = {} # type: ignore
     form_files: list[UploadFile] = []
     for key, value in form.items():
         if key.startswith("metrics"):
-            metrics = json.load(value) # type: ignore
+            metrics = json.loads(value) # type: ignore
         elif key.startswith("history"):
             history = value # type: ignore
         elif key.startswith("files"):
