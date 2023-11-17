@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import Any
 from server.settings import settings
 import pickle
+import json
 
 from server.db.models.results import Result
 
@@ -48,9 +49,9 @@ async def submit_train_results(
     form_files: list[UploadFile] = []
     for key, value in form.items():
         if key.startswith("metrics"):
-            metrics[key.split(".")[-1]] = float(value) # type: ignore
+            metrics = json.load(value) # type: ignore
         elif key.startswith("history"):
-            history[key.split(".")[-1]] = float(value) # type: ignore
+            history = value # type: ignore
         elif key.startswith("files"):
             form_files.append(value) # type: ignore
     result_id: uuid.UUID = form["result_id"] # type: ignore
