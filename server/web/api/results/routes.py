@@ -46,8 +46,8 @@ async def submit_train_results(
     metrics: dict = form["metrics"] # type: ignore
     history: dict = form["history"] # type: ignore
     result_id: uuid.UUID = form["result_id"] # type: ignore
-    body = await request.body()
-    print("body=====:",body)
+    # body = await request.body()
+    # print("body=====:",body)
     print("form=====:",form)
     train_results_in = TrainResultsIn(
         result_id=result_id,
