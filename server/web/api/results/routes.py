@@ -1,5 +1,5 @@
 import uuid
-from fastapi import APIRouter, HTTPException, UploadFile
+from fastapi import APIRouter, HTTPException, Request, UploadFile
 from pydantic import BaseModel
 from typing import Any
 from server.settings import settings
@@ -38,9 +38,23 @@ async def get_result(result_id: str) -> Result:
 
 @api_router.post("/train", tags=["results", "jobs"], summary="Submit training results for a job")
 async def submit_train_results(
-    train_results_in: TrainResultsIn,
+    request: Request,
 ) -> None:
     """Submit training results for a job."""
+    form = await request.form()
+    form_files: list[UploadFile] = form["files"] # type: ignore
+    metrics: dict = form["metrics"] # type: ignore
+    history: dict = form["history"] # type: ignore
+    result_id: uuid.UUID = form["result_id"] # type: ignore
+    body = await request.body()
+    print("body=====:",body)
+    print("form=====:",form)
+    train_results_in = TrainResultsIn(
+        result_id=result_id,
+        files=form_files,
+        metrics=metrics,
+        history=history,
+    )
     result = await Result.objects.select_related("job").get(id=train_results_in.result_id)
     if result is None:
         raise HTTPException(
