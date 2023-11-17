@@ -84,10 +84,11 @@ async def submit_train_results(
             f.write(file.file.read())
         index += 1
 
+    history = train_results_in.history
 
     # Dump history into pickle file
     with open(f"{settings.results_dir}/{str(train_results_in.result_id)}/history.pkl", "wb") as f:
-        pickle.dump(train_results_in.history, f)
+        pickle.dump(history, f)
 
     files.append("history.pkl")
     result.metrics = train_results_in.metrics
