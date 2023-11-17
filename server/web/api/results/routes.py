@@ -43,7 +43,6 @@ async def submit_train_results(
 ) -> None:
     """Submit training results for a job."""
     form = await request.form()
-    # form_files: list[UploadFile] = form["files"] 
     metrics = {}
     history = {} # type: ignore
     form_files: list[UploadFile] = []
@@ -55,9 +54,6 @@ async def submit_train_results(
         elif key.startswith("files"):
             form_files.append(value) # type: ignore
     result_id: uuid.UUID = form["result_id"] # type: ignore
-    # body = await request.body()
-    # print("body=====:",body)
-    print("form=====:",form)
     train_results_in = TrainResultsIn(
         result_id=result_id,
         files=form_files,
@@ -96,6 +92,7 @@ async def submit_train_results(
     files.append("history.pkl")
     result.metrics = train_results_in.metrics
     result.files = files
+    result.status = "done"
     await result.update()
     # Return 200 OK
     return None
