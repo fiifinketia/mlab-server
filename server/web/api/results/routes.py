@@ -42,9 +42,17 @@ async def submit_train_results(
 ) -> None:
     """Submit training results for a job."""
     form = await request.form()
-    form_files: list[UploadFile] = form["files"] # type: ignore
-    metrics: dict = form["metrics"] # type: ignore
-    history: dict = form["history"] # type: ignore
+    # form_files: list[UploadFile] = form["files"] 
+    metrics = {}
+    history = {}
+    form_files: list[UploadFile] = []
+    for key, value in form.items():
+        if key.startswith("metrics"):
+            metrics[key.split(".")[-1]] = float(value) # type: ignore
+        elif key.startswith("history"):
+            history[key.split(".")[-1]] = float(value) # type: ignore
+        elif key.startswith("files"):
+            form_files.append(value) # type: ignore
     result_id: uuid.UUID = form["result_id"] # type: ignore
     # body = await request.body()
     # print("body=====:",body)
