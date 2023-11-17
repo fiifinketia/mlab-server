@@ -20,7 +20,7 @@ async def run_model(
 ) -> Result:
     """Train model with a provided dataset and store results"""
     # Get the dataset path
-    dataset_path = os.path.join(settings.datasets_dir, dataset.path)
+    dataset_path = settings.datasets_dir + dataset.path
     job_path = os.path.join(settings.jobs_dir, str(job.id))
 
     # Get the model path using the job model_name
