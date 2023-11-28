@@ -36,5 +36,6 @@ jobs:
             yes | cp -rf ${{ secrets.MLAB_PROJECT_PATH }} ${{ secrets.MLAB_SERVER_PATH }}
             cd ${{ secrets.MLAB_SERVER_PATH }}
             pip install -r requirements.txt
-            docker-compose -f ../../deploy/docker-compose.yml --project-directory . down --build -d
-            docker-compose -f ../../deploy/docker-compose.yml --project-directory . up --build -d
+            ls
+            docker-compose -f deploy/docker-compose.yml --project-directory . down --build -d
+            docker-compose -f deploy/docker-compose.yml --project-directory . up --build -d
