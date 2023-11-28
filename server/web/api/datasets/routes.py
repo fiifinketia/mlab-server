@@ -1,6 +1,6 @@
 """Routes for jobs API."""
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, HTTPException, Request
 
 # from server.db.models.jobs import Job
 # from server.db.models.ml_models import Model
@@ -20,6 +20,13 @@ async def fetch_datasets(user_id: str = "") -> list[Dataset]:
         all_datasets.extend(user_datasets)
     return all_datasets
 
+@api_router.get("/{dataset_id}", tags=["datasets"], summary="Get a dataset")
+async def fetch_dataset(dataset_id: str) -> Dataset:
+    """Get a dataset."""
+    dataset = await Dataset.objects.get(id=dataset_id)
+    if dataset is None:
+        raise HTTPException(status_code=404, detail=f"Dataset {dataset_id} not found")
+    return dataset
 
 @api_router.post("/", tags=["datasets"], summary="Upload a new dataset")
 async def upload_dataset(request: Request) -> Dataset:

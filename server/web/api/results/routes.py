@@ -2,6 +2,7 @@ import uuid
 from fastapi import APIRouter, HTTPException, Request, UploadFile
 from pydantic import BaseModel
 from typing import Any
+from server.db.models.datasets import Dataset
 from server.settings import settings
 import pickle
 import json
@@ -20,9 +21,24 @@ class TrainResultsIn(BaseModel):
     history: Any = {}
 
 @api_router.get("/{user_id}", tags=["results"], summary="Get all results for a user")
-async def get_results(user_id: str) -> list[Result]:
+async def get_results(user_id: str) -> list[dict[str, Any]]:
     """Get all results for a user."""
-    return await Result.objects.select_related("job").all(owner_id=user_id)
+    results = await Result.objects.select_related("job").all(owner_id=user_id)
+    result_list = []
+    for result in results:
+        dataset = await Dataset.objects.get(id=result.dataset_id)
+        result_new = {
+            "id": result.id,
+            "type": result.result_type,
+            "job_name": result.job.name,
+            "dataset_name": dataset.name,
+            "model_name": result.job.model_name,
+            "status": result.status,
+            "created": result.created,
+            "modified": result.modified,
+        }
+        result_list.append(result_new)
+    return result_list
 
 @api_router.get("/{user_id}/{job_id}", tags=["results"], summary="Get all results for a job")
 async def get_job_results(user_id: str, job_id: str) -> list[Result]:
