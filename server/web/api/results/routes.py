@@ -1,5 +1,8 @@
+import os
 import uuid
-from fastapi import APIRouter, HTTPException, Request, UploadFile
+import zipfile
+from fastapi import APIRouter, HTTPException, Request, Response, UploadFile
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Any
 from server.db.models.datasets import Dataset
@@ -113,3 +116,29 @@ async def submit_train_results(
     await result.update()
     # Return 200 OK
     return None
+
+@api_router.post("/download/{result_id}", tags=["results"], summary="Download a result")
+async def zip_files_for_download(
+    result_id: str,
+) -> Any:
+    """Download a result."""
+    result = await Result.objects.select_related("job").get(id=result_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail=f"Result {result_id} not found")
+    # Zip all files in result.files
+    with zipfile.ZipFile(f"{settings.results_dir}/tmp/{result_id}.zip", "w") as zipf:
+        zipdir(f"{settings.results_dir}/{result_id}", zipf)
+    # Return zip file for download
+    # Send response and delete zip file
+    response = FileResponse(f"{settings.results_dir}/tmp/{result_id}.zip", media_type="application/octet-stream")
+    os.remove(f"{settings.results_dir}/tmp/{result_id}.zip")
+    return response
+
+def zipdir(path: str, ziph: Any) -> None:
+    """ ziph is zipfile handle"""
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            ziph.write(os.path.join(root, file), 
+                       os.path.relpath(os.path.join(root, file), 
+                                       os.path.join(path, '..')))
+
