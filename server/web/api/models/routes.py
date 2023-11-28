@@ -17,7 +17,7 @@ class CreateModelRequest(BaseModel):
     description: str
     owner_id: str
     version: str
-    path: str
+    gh_project_name: str
     parameters: dict[str, Any]
 
 
@@ -41,9 +41,9 @@ async def create_model(
         os.chdir(settings.models_dir)
 
     # Check if path to model exists
-    path = create_model_request.path
+    path = "./" + create_model_request.gh_project_name
     if not os.path.exists(path):
-        raise HTTPException(status_code=404, detail=f"Path {path} does not exist")
+        raise HTTPException(status_code=404, detail=f"Project {path} does not exist")
     # Get full path to model
     # Create model
     model_id = uuid.uuid4()
@@ -60,6 +60,6 @@ async def create_model(
         description=create_model_request.description,
         owner_id=create_model_request.owner_id,
         version=create_model_request.version,
-        path=create_model_request.path,
+        path=path,
         parameters=create_model_request.parameters,
     )
