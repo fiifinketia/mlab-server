@@ -109,7 +109,6 @@ def run_script_in_venv(
     script_path: str,
     result_id: uuid.UUID,
     config_path: str,
-    create_model_path: str | None = None,
 ) -> None:
     """Run a script in a virtual environment using ProcessPoolExecutor"""
     # Activate the virtual environment
@@ -120,7 +119,7 @@ def run_script_in_venv(
     install_requirements = f"pip install -r {model_path}/requirements.txt"
 
     # Prepare the command to run the script with arguments
-    run_script = f"python {script_path} --config {config_path} --result_id {result_id} --model {create_model_path}"
+    run_script = f"python {script_path} --config {config_path} --result_id {result_id}"
 
     # Combine the commands
     command = f"{activate_venv} && {install_requirements} && {run_script}"

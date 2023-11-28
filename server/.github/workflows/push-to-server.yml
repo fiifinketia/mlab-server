@@ -1,0 +1,40 @@
+name: Push to server
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # STOP IF it is template repo
+      - if : ${{ github.repository == 'UG-Machine-Learning-Computer-Vision/mlab-model-template' }}
+        name: Stop execution
+        run: exit 1
+      - uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: check if requirements.txt has changed
+        id: requirements
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            txt:
+              - requirements.txt
+      - name: push to server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ${{ secrets.MLAB_SERVER_PATH }}
+            git pull
+            yes | cp -rf ${{ secrets.MLAB_PROJECT_PATH }} ${{ secrets.MLAB_SERVER_PATH }}
+            cd ${{ secrets.MLAB_SERVER_PATH }}
+            pip install -r requirements.txt
+            docker-compose -f deploy/docker-compose.yml --project-directory . down --build -d
+            docker-compose -f deploy/docker-compose.yml --project-directory . up --build -d
