@@ -83,6 +83,7 @@ async def run_model(
         dataset_id=dataset.id,
         status="running",
         result_type="train",
+        owner_id=job.owner_id,
     )
 
     # Run the script
