@@ -46,7 +46,7 @@ async def get_results(user_id: str) -> list[dict[str, Any]]:
 @api_router.get("/{user_id}/{job_id}", tags=["results"], summary="Get all results for a job")
 async def get_job_results(user_id: str, job_id: str) -> list[Result]:
     """Get all results for a job."""
-    return await Result.objects.select_related("job").all(owner_id=user_id, job_id=job_id)
+    return await Result.objects.select_related("job").all(owner_id=user_id, id=job_id)
 
 @api_router.get("/{result_id}", tags=["results"], summary="Get a result")
 async def get_result(result_id: str) -> Result:
