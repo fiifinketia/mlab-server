@@ -117,7 +117,7 @@ async def submit_train_results(
     # Return 200 OK
     return None
 
-@api_router.post("/download/{result_id}", tags=["results"], summary="Download a result")
+@api_router.get("/download/{result_id}", tags=["results"], summary="Download a result")
 async def zip_files_for_download(
     result_id: str,
 ) -> Any:
