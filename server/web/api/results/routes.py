@@ -59,12 +59,26 @@ async def get_result(result_id: str) -> Result:
 @api_router.post("/train", tags=["results", "jobs"], summary="Submit training results for a job")
 async def submit_train_results(
     request: Request,
+    error: bool = False,
 ) -> None:
     """Submit training results for a job."""
+    if error:
+        train_results_in = await request.json()
+        result_id: uuid.UUID = train_results_in["result_id"]
+        result = await Result.objects.select_related("job").get(id=result_id)
+        if result is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Result {result_id} not found",
+            )
+        result.status = "error"
+        await result.update()
+        return None
     form = await request.form()
     metrics = {}
     history = {} # type: ignore
     form_files: list[UploadFile] = []
+    print(form.items())
     for key, value in form.items():
         if key.startswith("metrics"):
             metrics = json.loads(value) # type: ignore
