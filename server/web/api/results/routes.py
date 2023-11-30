@@ -70,7 +70,7 @@ async def submit_train_results(
             metrics = json.loads(value) # type: ignore
         elif key.startswith("history"):
             history = value # type: ignore
-        elif key.startswith("files"):
+        elif key.startswith("file"):
             form_files.append(value) # type: ignore
     result_id: uuid.UUID = form["result_id"] # type: ignore
     train_results_in = TrainResultsIn(
@@ -91,12 +91,11 @@ async def submit_train_results(
     # Save plot to results directory
     index = 0
     for file in train_results_in.files:
-        file_type = ""
+        file_name = ""
         if file.filename is not None:
-            file_type = file.filename.split(".")[-1]
+            file_name = file.filename
         else:
-            file_type = ".png"
-        file_name = str(train_results_in.result_id) + str(index) + file_type
+            file_name = str(train_results_in.result_id) + str(index) + ".png"
         files.append(file_name)
         file_path = f"{settings.results_dir}/{str(train_results_in.result_id)}/{file_name}"
         with open(file_path, "wb") as f:
