@@ -76,6 +76,9 @@ async def run_model(
         executable="/bin/bash",
         check=True,
     )
+    files = []
+
+    files.append("config.txt")
 
     result = await Result.objects.create(
         id=result_id,
@@ -84,6 +87,7 @@ async def run_model(
         status="running",
         result_type="train",
         owner_id=job.owner_id,
+        files=files,
     )
 
     # Run the script
