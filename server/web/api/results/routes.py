@@ -86,7 +86,7 @@ async def submit_train_results(
             detail=f"Result {train_results_in.result_id} not found",
         )
 
-    files: list[str] = [].append(result.files)
+    files: list[str] = result.files
 
     # Save plot to results directory
     index = 0
