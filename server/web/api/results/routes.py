@@ -122,7 +122,8 @@ async def zip_files_for_download(
     result_id: str,
 ) -> Any:
     """Download a result."""
-    result = await Result.objects.select_related("job").get(id=result_id)
+    result_uuid = uuid.UUID(result_id)
+    result = await Result.objects.select_related("job").get(id=result_uuid)
     if result is None:
         raise HTTPException(status_code=404, detail=f"Result {result_id} not found")
     # Zip all files in result.files
