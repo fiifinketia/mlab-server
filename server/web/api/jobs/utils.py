@@ -114,13 +114,12 @@ async def run_model(
             result_id,
             f"{job_path}/config.txt",
         )
-    except Exception as e:
+    except subprocess.CalledProcessError as e:
         error = str(e)
         result.status = "error"
         # Add to error.txt file in results directory
         with open(f"{settings.results_dir}/{result_id}/error.txt", "w") as f:
             f.write(error)
-        file = open(f"{settings.results_dir}/{result_id}/error.txt", "rb")
         files.append("error.txt")
         result.files = files
         await result.update()
@@ -133,7 +132,7 @@ def run_script_in_venv(
     script_path: str,
     result_id: uuid.UUID,
     config_path: str,
-) -> None:
+) -> Any:
     """Run a script in a virtual environment using ProcessPoolExecutor"""
     # Activate the virtual environment
     venv_path = f"{model_path}/venv"
@@ -149,4 +148,4 @@ def run_script_in_venv(
     command = f"{activate_venv} && {install_requirements} && {run_script}"
 
     # Run the command
-    subprocess.run(command, shell=True, executable="/bin/bash", check=True)
+    return subprocess.run(command, shell=True, executable="/bin/bash", check=True)
