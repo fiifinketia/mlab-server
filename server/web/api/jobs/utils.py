@@ -76,6 +76,19 @@ async def run_model(
         executable="/bin/bash",
         check=True,
     )
+
+    # edit config.txt file in results directory and remove the dataset_url line
+    with open(f"{settings.results_dir}/{result_id}/config.txt", "r") as file:
+        filedata = file.read()
+        filedata = filedata.replace(
+            f"PARAM dataset_url str {dataset_path}",
+            "",
+        )
+
+        # Save the updated config file
+        with open(f"{settings.results_dir}/{result_id}/config.txt", "w") as file:
+            file.write(filedata)
+
     files = []
 
     files.append("config.txt")
@@ -92,19 +105,25 @@ async def run_model(
 
     # Run the script
     executor = ProcessPoolExecutor()
-    executor.submit(
-        run_script_in_venv,
-        model_path,
-        f"{model_path}/{entry_point}.py",
-        result_id,
-        f"{job_path}/config.txt",
-    )
-    # run_script_in_venv(
-    #   model_path,
-    #   script_path=f"{model_path}/{entry_point}.py",
-    #   config_path=f"{job_path}/config.txt",
-    #   result_id=result_id,
-    # )
+
+    try:
+        executor.submit(
+            run_script_in_venv,
+            model_path,
+            f"{model_path}/{entry_point}.py",
+            result_id,
+            f"{job_path}/config.txt",
+        )
+    except Exception as e:
+        error = str(e)
+        result.status = "error"
+        # Add to error.txt file in results directory
+        with open(f"{settings.results_dir}/{result_id}/error.txt", "w") as f:
+            f.write(error)
+        file = open(f"{settings.results_dir}/{result_id}/error.txt", "rb")
+        files.append("error.txt")
+        result.files = files
+        await result.update()
 
     return result
 
