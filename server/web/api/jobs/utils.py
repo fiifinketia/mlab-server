@@ -136,7 +136,7 @@ async def run_model(
     except subprocess.CalledProcessError as e:
         error_message = ""
         if e.stderr is not None:
-            error_message = e.stderr.decode("utf-8")
+            error_message = e.output.decode("utf-8") + "\n" + e.stderr.decode("utf-8")
         else:
             error_message = str(e)
         # Append error in error.txt file
