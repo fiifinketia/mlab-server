@@ -119,20 +119,13 @@ async def run_model(
                 install_output.result().stderr,
             )
         # Run the script
-        train_output = executor.submit(
+        executor.submit(
             run_train_model,
             model_path,
             f"{model_path}/{entry_point}.py",
             result_id,
             f"{settings.results_dir}/{result_id}/config.txt",
         )
-        if train_output.result().returncode != 0:
-            raise subprocess.CalledProcessError(
-                train_output.result().returncode,
-                train_output.result().args,
-                "Error running script",
-                train_output.result().stderr,
-            )
     except subprocess.CalledProcessError as e:
         error_message = ""
         if e.stderr is not None:
