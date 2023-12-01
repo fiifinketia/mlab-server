@@ -74,7 +74,7 @@ async def submit_train_results(
         result.status = "error"
         error_form_files: list[UploadFile] = []
         for key, value in form.items():
-            if type(value) == UploadFile:
+            if isinstance(value, UploadFile):
                 error_form_files.append(value)
         files: list[str] = result.files
         # Save plot to results directory
@@ -92,7 +92,6 @@ async def submit_train_results(
             index += 1
         result.files = files
         await result.update()
-        return None
     else:
         form = await request.form()
         metrics = {}
