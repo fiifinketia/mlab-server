@@ -1,12 +1,15 @@
 import enum
+import os
 from pathlib import Path
 from tempfile import gettempdir
 from typing import Optional
+from dotenv import load_dotenv
 
 from pydantic import BaseSettings
 from yarl import URL
 
 TEMP_DIR = Path(gettempdir())
+load_dotenv()
 
 
 class LogLevel(str, enum.Enum):  # noqa: WPS600
@@ -30,8 +33,8 @@ class Settings(BaseSettings):
 
     host: str = "0.0.0.0"
     port: int = 8000
-    # quantity of workers for uvicorn
-    workers_count: int = 4
+    # quantity of workers for uvicorn, get from env
+    workers_count: int = int(os.getenv("WORKERS_COUNT", "1"))
     # Enable uvicorn reloading
     reload: bool = False
 
