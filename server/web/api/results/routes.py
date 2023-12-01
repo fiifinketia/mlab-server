@@ -9,6 +9,7 @@ from server.db.models.datasets import Dataset
 from server.settings import settings
 import pickle
 import json
+import starlette
 
 from server.db.models.results import Result
 
@@ -74,7 +75,7 @@ async def submit_train_results(
         result.status = "error"
         error_form_files: list[UploadFile] = []
         for key, value in form.items():
-            if isinstance(value, UploadFile):
+            if type(value) == starlette.datastructures.UploadFile:
                 error_form_files.append(value)
         files: list[str] = result.files
         # Save plot to results directory
@@ -102,7 +103,8 @@ async def submit_train_results(
                 metrics = json.loads(value) # type: ignore
             elif key.startswith("history"):
                 history = value # type: ignore
-            elif isinstance(value, UploadFile):
+                # 'starlette.datastructures.UploadFile'
+            elif type(value) == starlette.datastructures.UploadFile:
                 form_files.append(value) # type: ignore
         result_id: uuid.UUID = form["result_id"] # type: ignore
         train_results_in = TrainResultsIn(
@@ -119,8 +121,6 @@ async def submit_train_results(
             )
 
         new_files: list[str] = result.files
-
-        print(train_results_in.files)
 
         # Save plot to results directory
         index = 0
