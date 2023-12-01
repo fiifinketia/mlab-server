@@ -1,6 +1,6 @@
 """Routes for jobs API."""
 import os
-from typing import Any, Coroutine, Dict, Optional
+from typing import Any, Coroutine, Optional
 import uuid
 
 import asyncio
@@ -110,6 +110,6 @@ async def train_model(
     res = await loop.run_in_executor(None, lambda: run_model(dataset, job, train_model_in.parameters))
     return make_dict(res)
 
-def make_dict(obj: Coroutine[Any, Any, Any]) -> Dict:
+def make_dict(obj: Coroutine[Any, Any, Any]) -> dict:
     """Converts a coroutine to a dictionary."""
     return obj.__dict__
