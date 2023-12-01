@@ -112,7 +112,12 @@ async def run_model(
             model_path,
         )
         if install_output.result().returncode != 0:
-            raise RuntimeError("Error installing requirements")
+            raise subprocess.CalledProcessError(
+                install_output.result().returncode,
+                install_output.result().args,
+                "Error running script",
+                install_output.result().stderr,
+            )
         # Run the script
         train_output = executor.submit(
             run_train_model,
@@ -122,15 +127,18 @@ async def run_model(
             f"{settings.results_dir}/{result_id}/config.txt",
         )
         if train_output.result().returncode != 0:
-            raise RuntimeError("Error running script")
-    except RuntimeError as e:
+            raise subprocess.CalledProcessError(
+                train_output.result().returncode,
+                train_output.result().args,
+                "Error running script",
+                train_output.result().stderr,
+            )
+    except subprocess.CalledProcessError as e:
         error_message = ""
-        if e.args[0] == "Error installing requirements":
-            error_message = "Error installing requirements, Please check the requirements.txt file"
-        elif e.args[0] == "Error running script":
-            error_message = "Error running script, Please check the script"
+        if e.stderr is not None:
+            error_message = e.stderr.decode("utf-8")
         else:
-            error_message = "Unknown error"
+            error_message = str(e)
         # Append error in error.txt file
         # First check if error.txt file exists
         if not os.path.exists(f"{settings.results_dir}/{result_id}/error.txt"):
