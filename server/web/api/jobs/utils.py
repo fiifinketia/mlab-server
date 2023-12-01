@@ -104,27 +104,22 @@ async def run_model(
     )
 
     # Run the script
-    executor = ProcessPoolExecutor()
 
     try:
-        install_output = executor.submit(
-            run_install_requirements,
-            model_path,
-        )
-        if install_output.result().returncode != 0:
+        install_output = run_install_requirements(model_path)
+        if install_output.returncode != 0:
             raise subprocess.CalledProcessError(
-                install_output.result().returncode,
-                install_output.result().args,
+                install_output.returncode,
+                install_output.args,
                 "Error running script",
-                install_output.result().stderr,
+                install_output.stderr,
             )
         # Run the script
-        executor.submit(
-            run_train_model,
-            model_path,
-            f"{model_path}/{entry_point}.py",
-            result_id,
-            f"{settings.jobs_dir}/{result_id}/config.txt",
+        run_train_model(
+            model_path=model_path,
+            script_path=f"{model_path}/{entry_point}.py",
+            result_id=result_id,
+            config_path=f"{job_path}/config.txt",
         )
     except subprocess.CalledProcessError as e:
         error_message = ""
