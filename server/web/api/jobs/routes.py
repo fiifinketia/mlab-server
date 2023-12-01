@@ -112,4 +112,4 @@ async def train_model(
 
 def make_dict(obj: Coroutine[Any, Any, Any]) -> dict:
     """Converts a coroutine to a dictionary."""
-    return obj.__dict__
+    return obj
