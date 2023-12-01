@@ -98,7 +98,7 @@ async def create_job(
 @api_router.post("/train", tags=["jobs", "models", "results"], summary="Run job to train model")
 async def train_model(
     train_model_in: TrainModelIn,
-) -> None:
+) -> Any:
     """Run job to train model."""
     # If dataset_id is defined then file and dataset_name is ignored
     # Else upload new dataset file for user
@@ -107,4 +107,4 @@ async def train_model(
     # Check dataset type or structure
     # TODO: Check dataset type or structure
     res = await run_in_threadpool(run_model, dataset, job, train_model_in.parameters)
-    return None
+    return res
