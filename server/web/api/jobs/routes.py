@@ -109,3 +109,4 @@ async def train_model(
 
     loop = asyncio.get_event_loop()
     loop.create_task(run_model(dataset=dataset, job=job, parameters=train_model_in.parameters))
+    return "Training model"
