@@ -106,17 +106,12 @@ async def train_model(
     job = await Job.objects.get(id=train_model_in.job_id)
     # Check dataset type or structure
     # TODO: Check dataset type or structure
-    async def run_async_model() -> None:
-        """Run model asynchronously"""
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(
-            run_model(
-                dataset=dataset,
-                job=job,
-                parameters=train_model_in.parameters,
-            )
-        )
-        loop.close()
+
     loop = asyncio.get_event_loop()
-    loop.create_task(run_async_model())
+    loop.run_until_complete(
+        run_model(
+            dataset=dataset,
+            job=job,
+            parameters=train_model_in.parameters,
+        )
+    )
