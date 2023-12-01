@@ -3,8 +3,8 @@ import os
 from typing import Any, Optional
 import uuid
 
+import asyncio
 from fastapi import APIRouter, HTTPException
-from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 
 from server.db.models.datasets import Dataset
@@ -106,4 +106,5 @@ async def train_model(
     job = await Job.objects.get(id=train_model_in.job_id)
     # Check dataset type or structure
     # TODO: Check dataset type or structure
-    return await run_in_threadpool(run_model, dataset, job, train_model_in.parameters)
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, lambda: run_model(dataset, job, train_model_in.parameters))
