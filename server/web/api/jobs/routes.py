@@ -110,6 +110,12 @@ async def train_model(
         """Run model asynchronously"""
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        await loop.run_in_executor(None, run_model, dataset, job, train_model_in.parameters)
+        loop.run_until_complete(
+            run_model(
+                dataset=dataset,
+                job=job,
+                parameters=train_model_in.parameters,
+            )
+        )
     loop = asyncio.get_event_loop()
     loop.create_task(run_async_model())
