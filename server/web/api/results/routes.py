@@ -52,7 +52,8 @@ async def get_results(user_id: str) -> list[dict[str, Any]]:
 @api_router.get("/{result_id}", tags=["results"], summary="Get a result")
 async def get_result(result_id: str) -> Result:
     """Get a result."""
-    result = await Result.objects.select_related("job").get(id=result_id)
+    uuid_result_id = uuid.UUID(result_id)
+    result = await Result.objects.select_related("job").get(id=uuid_result_id)
     if result is None:
         raise HTTPException(status_code=404, detail=f"Result {result_id} not found")
     return result
