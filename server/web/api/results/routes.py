@@ -97,7 +97,6 @@ async def submit_train_results(
         metrics = {}
         history = {} # type: ignore
         form_files: list[UploadFile] = []
-        print(form.items())
         for key, value in form.items():
             if key.startswith("metrics"):
                 metrics = json.loads(value) # type: ignore
@@ -120,6 +119,8 @@ async def submit_train_results(
             )
 
         new_files: list[str] = result.files
+
+        print(train_results_in.files)
 
         # Save plot to results directory
         index = 0
