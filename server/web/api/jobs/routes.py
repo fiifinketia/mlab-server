@@ -117,5 +117,6 @@ async def train_model(
                 parameters=train_model_in.parameters,
             )
         )
+        loop.close()
     loop = asyncio.get_event_loop()
     loop.create_task(run_async_model())
