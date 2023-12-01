@@ -107,14 +107,23 @@ async def run_model(
     executor = ProcessPoolExecutor()
 
     try:
-        executor.submit(
+        out = executor.submit(
             run_script_in_venv,
             model_path,
             f"{model_path}/{entry_point}.py",
             result_id,
             f"{job_path}/config.txt",
         )
+        print("out: ", out)
+        if out.result().returncode != 0:
+            raise subprocess.CalledProcessError(
+                out.result().returncode,
+                out.result().args,
+                out.result().stdout,
+                out.result().stderr,
+            )
     except subprocess.CalledProcessError as e:
+        print("caught: ======",e)
         error = str(e)
         result.status = "error"
         # Add to error.txt file in results directory
@@ -132,7 +141,7 @@ def run_script_in_venv(
     script_path: str,
     result_id: uuid.UUID,
     config_path: str,
-) -> Any:
+) -> subprocess.CompletedProcess[bytes]:
     """Run a script in a virtual environment using ProcessPoolExecutor"""
     # Activate the virtual environment
     venv_path = f"{model_path}/venv"
