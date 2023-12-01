@@ -108,8 +108,8 @@ async def train_model(
     # TODO: Check dataset type or structure
     loop = asyncio.get_running_loop()
     res = await loop.run_in_executor(None, lambda: run_model(dataset, job, train_model_in.parameters))
-    return make_dict(res)
+    return use_result(res)
 
-def make_dict(obj: Coroutine[Any, Any, Any]) -> Any:
+def use_result(obj: Coroutine[Any, Any, Any]) -> Any:
     """Converts a coroutine to a dictionary."""
-    return obj
+    print(obj)
