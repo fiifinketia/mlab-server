@@ -106,5 +106,4 @@ async def train_model(
     job = await Job.objects.get(id=train_model_in.job_id)
     # Check dataset type or structure
     # TODO: Check dataset type or structure
-    res = await run_in_threadpool(run_model, dataset, job, train_model_in.parameters)
-    return res
+    return await run_in_threadpool(run_model, dataset, job, train_model_in.parameters)
