@@ -107,21 +107,21 @@ async def run_model(
     executor = ProcessPoolExecutor()
 
     try:
-        install_output = await executor.submit(
+        install_output = executor.submit(
             run_install_requirements,
             model_path,
         )
-        if install_output.returncode != 0:
+        if install_output.result().returncode != 0:
             raise RuntimeError("Error installing requirements")
         # Run the script
-        train_output = await executor.submit(
+        train_output = executor.submit(
             run_train_model,
             model_path,
             f"{model_path}/{entry_point}.py",
             result_id,
             f"{settings.results_dir}/{result_id}/config.txt",
         )
-        if train_output.returncode != 0:
+        if train_output.result().returncode != 0:
             raise RuntimeError("Error running script")
     except RuntimeError as e:
         error_message = ""
