@@ -20,7 +20,7 @@ class TrainResultsIn(BaseModel):
 
     result_id: uuid.UUID
     files: list[UploadFile] = []
-    metrics: dict[str, float] = {}
+    metrics: Any = {}
     history: Any = {}
 
 @api_router.get("/{user_id}", tags=["results"], summary="Get all results for a user")
@@ -63,8 +63,8 @@ async def submit_train_results(
 ) -> None:
     """Submit training results for a job."""
     if error:
-        train_results_in = await request.json()
-        result_id: uuid.UUID = train_results_in["result_id"]
+        form = await request.form()
+        result_id: uuid.UUID = form["result_id"] # type: ignore
         result = await Result.objects.select_related("job").get(id=result_id)
         if result is None:
             raise HTTPException(
@@ -72,63 +72,83 @@ async def submit_train_results(
                 detail=f"Result {result_id} not found",
             )
         result.status = "error"
+        error_form_files: list[UploadFile] = []
+        for key, value in form.items():
+            if type(value) == UploadFile:
+                error_form_files.append(value)
+        files: list[str] = result.files
+        # Save plot to results directory
+        index = 0
+        for file in error_form_files:
+            file_name = ""
+            if file.filename is not None:
+                file_name = file.filename
+            else:
+                file_name = str(result_id) + str(index) + ".png"
+            files.append(file_name)
+            file_path = f"{settings.results_dir}/{str(result_id)}/{file_name}"
+            with open(file_path, "wb") as f:
+                f.write(file.file.read())
+            index += 1
+        result.files = files
         await result.update()
         return None
-    form = await request.form()
-    metrics = {}
-    history = {} # type: ignore
-    form_files: list[UploadFile] = []
-    print(form.items())
-    for key, value in form.items():
-        if key.startswith("metrics"):
-            metrics = json.loads(value) # type: ignore
-        elif key.startswith("history"):
-            history = value # type: ignore
-        elif key.startswith("file"):
-            form_files.append(value) # type: ignore
-    result_id: uuid.UUID = form["result_id"] # type: ignore
-    train_results_in = TrainResultsIn(
-        result_id=result_id,
-        files=form_files,
-        metrics=metrics,
-        history=history,
-    )
-    result = await Result.objects.select_related("job").get(id=train_results_in.result_id)
-    if result is None:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Result {train_results_in.result_id} not found",
+    else:
+        form = await request.form()
+        metrics = {}
+        history = {} # type: ignore
+        form_files: list[UploadFile] = []
+        print(form.items())
+        for key, value in form.items():
+            if key.startswith("metrics"):
+                metrics = json.loads(value) # type: ignore
+            elif key.startswith("history"):
+                history = value # type: ignore
+            elif isinstance(value, UploadFile):
+                form_files.append(value) # type: ignore
+        result_id: uuid.UUID = form["result_id"] # type: ignore
+        train_results_in = TrainResultsIn(
+            result_id=result_id,
+            files=form_files,
+            metrics=metrics,
+            history=history,
         )
+        result = await Result.objects.select_related("job").get(id=train_results_in.result_id)
+        if result is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Result {train_results_in.result_id} not found",
+            )
 
-    files: list[str] = result.files
+        new_files: list[str] = result.files
 
-    # Save plot to results directory
-    index = 0
-    for file in train_results_in.files:
-        file_name = ""
-        if file.filename is not None:
-            file_name = file.filename
-        else:
-            file_name = str(train_results_in.result_id) + str(index) + ".png"
-        files.append(file_name)
-        file_path = f"{settings.results_dir}/{str(train_results_in.result_id)}/{file_name}"
-        with open(file_path, "wb") as f:
-            f.write(file.file.read())
-        index += 1
+        # Save plot to results directory
+        index = 0
+        for file in train_results_in.files:
+            file_name = ""
+            if file.filename is not None:
+                file_name = file.filename
+            else:
+                file_name = str(train_results_in.result_id) + str(index) + ".png"
+            new_files.append(file_name)
+            file_path = f"{settings.results_dir}/{str(train_results_in.result_id)}/{file_name}"
+            with open(file_path, "wb") as f:
+                f.write(file.file.read())
+            index += 1
 
-    history = train_results_in.history
+        history = train_results_in.history
 
-    # Dump history into pickle file
-    with open(f"{settings.results_dir}/{str(train_results_in.result_id)}/history.pkl", "wb") as f:
-        pickle.dump(history, f)
+        # Dump history into pickle file
+        with open(f"{settings.results_dir}/{str(train_results_in.result_id)}/history.pkl", "wb") as f:
+            pickle.dump(history, f)
 
-    files.append("history.pkl")
-    result.metrics = train_results_in.metrics
-    result.files = files
-    result.status = "done"
-    await result.update()
-    # Return 200 OK
-    return None
+        new_files.append("history.pkl")
+        result.metrics = train_results_in.metrics
+        result.files = new_files
+        result.status = "done"
+        await result.update()
+        # Return 200 OK
+        return None
 
 @api_router.get("/download/{result_id}", tags=["results"], summary="Download a result")
 async def zip_files_for_download(
