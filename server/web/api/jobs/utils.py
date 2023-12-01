@@ -107,36 +107,64 @@ async def run_model(
     executor = ProcessPoolExecutor()
 
     try:
-        out = executor.submit(
-            run_script_in_venv,
+        install_output = await executor.submit(
+            run_install_requirements,
+            model_path,
+        )
+        if install_output.returncode != 0:
+            raise RuntimeError("Error installing requirements")
+        # Run the script
+        train_output = await executor.submit(
+            run_train_model,
             model_path,
             f"{model_path}/{entry_point}.py",
             result_id,
-            f"{job_path}/config.txt",
+            f"{settings.results_dir}/{result_id}/config.txt",
         )
-        print("out: ", out)
-        if out.result().returncode != 0:
-            raise subprocess.CalledProcessError(
-                out.result().returncode,
-                out.result().args,
-                out.result().stdout,
-                out.result().stderr,
-            )
-    except subprocess.CalledProcessError as e:
-        print("caught: ======",e)
-        error = str(e)
-        result.status = "error"
-        # Add to error.txt file in results directory
-        with open(f"{settings.results_dir}/{result_id}/error.txt", "w") as f:
-            f.write(error)
+        if train_output.returncode != 0:
+            raise RuntimeError("Error running script")
+    except RuntimeError as e:
+        error_message = ""
+        if e.args[0] == "Error installing requirements":
+            error_message = "Error installing requirements, Please check the requirements.txt file"
+        elif e.args[0] == "Error running script":
+            error_message = "Error running script, Please check the script"
+        else:
+            error_message = "Unknown error"
+        # Append error in error.txt file
+        # First check if error.txt file exists
+        if not os.path.exists(f"{settings.results_dir}/{result_id}/error.txt"):
+            with open(f"{settings.results_dir}/{result_id}/error.txt", "w", encoding="utf-8") as f:
+                f.write(error_message)
+        else:
+            with open(f"{settings.results_dir}/{result_id}/error.txt", "a", encoding="utf-8") as f:
+                f.write(error_message)
+        # Update the result status
         files.append("error.txt")
         result.files = files
+        result.status = "error"
         await result.update()
-
     return result
+            
 
+def run_install_requirements(
+    model_path: str,
+) -> subprocess.CompletedProcess[bytes]:
+    """Install requirements in a virtual environment using ProcessPoolExecutor"""
+    # Activate the virtual environment
+    venv_path = f"{model_path}/venv"
+    activate_venv = f"source {venv_path}/bin/activate"
 
-def run_script_in_venv(
+    # Run install requirements
+    install_requirements = f"pip install -r {model_path}/requirements.txt"
+
+    # Combine the commands
+    command = f"{activate_venv} && {install_requirements}"
+
+    # Run the command
+    return subprocess.run(command, shell=True, executable="/bin/bash", check=True)
+
+def run_train_model(
     model_path: str,
     script_path: str,
     result_id: uuid.UUID,
@@ -147,14 +175,11 @@ def run_script_in_venv(
     venv_path = f"{model_path}/venv"
     activate_venv = f"source {venv_path}/bin/activate"
 
-    # Run install requirements
-    install_requirements = f"pip install -r {model_path}/requirements.txt"
-
     # Prepare the command to run the script with arguments
     run_script = f"python {script_path} --config {config_path} --result_id {result_id}"
 
     # Combine the commands
-    command = f"{activate_venv} && {install_requirements} && {run_script}"
+    command = f"{activate_venv} && {run_script}"
 
     # Run the command
     return subprocess.run(command, shell=True, executable="/bin/bash", check=True)
