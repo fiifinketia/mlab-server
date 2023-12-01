@@ -24,7 +24,7 @@ class TrainResultsIn(BaseModel):
     metrics: Any = {}
     history: Any = {}
 
-@api_router.get("/{user_id}", tags=["results"], summary="Get all results for a user")
+@api_router.get("/user/{user_id}", tags=["results"], summary="Get all results for a user")
 async def get_results(user_id: str) -> list[dict[str, Any]]:
     """Get all results for a user."""
     results = await Result.objects.select_related("job").all(owner_id=user_id)
