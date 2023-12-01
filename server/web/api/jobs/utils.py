@@ -124,7 +124,7 @@ async def run_model(
             model_path,
             f"{model_path}/{entry_point}.py",
             result_id,
-            f"{settings.results_dir}/{result_id}/config.txt",
+            f"{settings.jobs_dir}/{result_id}/config.txt",
         )
     except subprocess.CalledProcessError as e:
         error_message = ""

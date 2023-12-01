@@ -108,10 +108,4 @@ async def train_model(
     # TODO: Check dataset type or structure
 
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(
-        run_model(
-            dataset=dataset,
-            job=job,
-            parameters=train_model_in.parameters,
-        )
-    )
+    loop.create_task(run_model(dataset=dataset, job=job, parameters=train_model_in.parameters))
