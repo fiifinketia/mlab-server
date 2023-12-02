@@ -73,6 +73,12 @@ class ResultResponse(BaseModel):
     metrics: Any
     files: list[FileResponse]
     parameters: dict[str, Any]
+    model_name: str
+    model_version: str
+    model_description: str
+    dataset_name: str
+    dataset_description: str
+    dataset_content: str
 
 
 @api_router.get("/{result_id}", tags=["results"], summary="Get a result")
@@ -81,6 +87,8 @@ async def get_result(result_id: str) -> ResultResponse:
     uuid_result_id = uuid.UUID(result_id)
     # INtiialize result as type Result and size as int
     result = await Result.objects.select_related("job").get(id=uuid_result_id)
+    model = await Model.objects.get(id=result.job.model_id)
+    dataset = await Dataset.objects.get(id=result.dataset_id)
     files: list[ResultResponse.FileResponse] = []
     if result is None:
         raise HTTPException(status_code=404, detail=f"Result {result_id} not found")
@@ -105,6 +113,12 @@ async def get_result(result_id: str) -> ResultResponse:
         metrics=result.metrics,
         files=files,
         parameters=result.parameters,
+        model_name=model.name,
+        model_version=model.version,
+        model_description=model.description,
+        dataset_name=dataset.name,
+        dataset_description=dataset.description,
+        dataset_content=dataset.content_type,
     )
     return result_response
 
