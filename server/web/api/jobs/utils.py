@@ -93,6 +93,10 @@ async def run_model(
 
     files.append("config.txt")
 
+    for key, value in old_parameters.items():
+        if parameters.get(key) is None:
+            parameters[key] = value
+
     result = await Result.objects.create(
         id=result_id,
         job=job,
