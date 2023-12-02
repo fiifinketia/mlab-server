@@ -98,6 +98,8 @@ async def run_model(
             pass
         elif parameters.get(key) is None:
             parameters[key] = value
+    
+    del parameters["dataset_url"]
 
     result = await Result.objects.create(
         id=result_id,
