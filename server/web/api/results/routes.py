@@ -48,13 +48,19 @@ async def get_results(user_id: str) -> list[dict[str, Any]]:
 # async def get_job_results(user_id: str, job_id: str) -> list[Result]:
 #     """Get all results for a job."""
 #     return await Result.objects.select_related("job").all(owner_id=user_id, id=job_id)
-class ResultResponse(Result):
+class ResultResponse(BaseModel):
     """Result response"""
-    def __init__(self, size: int = 0, **data: Any):
-        super().__init__(**data)
-        self.size: int = size
-
-    size: int = 0
+    size: int
+    id: uuid.UUID
+    owner_id: str
+    result_type: str
+    job: Any
+    dataset_id: uuid.UUID
+    status: str
+    created: Any
+    modified: Any
+    metrics: Any
+    files: list[str]
 
 
 @api_router.get("/{result_id}", tags=["results"], summary="Get a result")
