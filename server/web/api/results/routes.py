@@ -50,6 +50,9 @@ async def get_results(user_id: str) -> list[dict[str, Any]]:
 #     return await Result.objects.select_related("job").all(owner_id=user_id, id=job_id)
 class ResultResponse(Result):
     """Result response"""
+    def __init__(self, size: int = 0, **data: Any):
+        super().__init__(**data)
+        self.size: int = size
 
     size: int = 0
 
@@ -59,14 +62,25 @@ async def get_result(result_id: str) -> ResultResponse:
     """Get a result."""
     uuid_result_id = uuid.UUID(result_id)
     # INtiialize result as type Result and size as int
-    result: Result
     result = await Result.objects.select_related("job").get(id=uuid_result_id)
     if result is None:
         raise HTTPException(status_code=404, detail=f"Result {result_id} not found")
     result_size = 0
     for file in result.files:
         result_size += os.path.getsize(f"{settings.results_dir}/{str(result_id)}/{file}")
-    result_response = ResultResponse(**result.dict(), size=result_size)
+    result_response = ResultResponse(
+        size=result_size,
+        id=result.id,
+        owner_id=result.owner_id,
+        result_type=result.result_type,
+        job=result.job,
+        dataset_id=result.dataset_id,
+        status=result.status,
+        created=result.created,
+        modified=result.modified,
+        metrics=result.metrics,
+        files=result.files,
+    )
     return result_response
 
 @api_router.post("/train", tags=["results", "jobs"], summary="Submit training results for a job")
@@ -85,7 +99,7 @@ async def submit_train_results(
                 detail=f"Result {result_id} not found",
             )
         result.status = "error"
-        error_form_files: list[UploadFile] = []
+        error_form_files: list[starlette.datastructures.UploadFile] = []
         for key, value in form.items():
             if type(value) == starlette.datastructures.UploadFile:
                 error_form_files.append(value)
