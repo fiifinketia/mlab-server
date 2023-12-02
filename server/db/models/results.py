@@ -3,7 +3,7 @@ import datetime
 import uuid
 
 import ormar
-
+from typing import Any
 from server.db.base import BaseMeta
 from server.db.models.jobs import Job
 from enum import Enum
@@ -36,3 +36,4 @@ class Result(ormar.Model):
     modified: datetime.datetime = ormar.DateTime(default=datetime.datetime.now)
     metrics: dict[str, float] = ormar.JSON(default=[])
     files: list[str] = ormar.JSON(default=[])
+    parameters: dict[str, Any] = ormar.JSON(default={})

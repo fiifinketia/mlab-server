@@ -1,3 +1,4 @@
+import datetime
 import os
 import uuid
 import zipfile
@@ -6,6 +7,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Any
 from server.db.models.datasets import Dataset
+from server.db.models.ml_models import Model
 from server.settings import settings
 import pickle
 import json
@@ -31,12 +33,15 @@ async def get_results(user_id: str) -> list[dict[str, Any]]:
     result_list = []
     for result in results:
         dataset = await Dataset.objects.get(id=result.dataset_id)
+        model = await Model.objects.get(id=result.job.model_id)
         result_new = {
             "id": result.id,
             "type": result.result_type,
             "job_name": result.job.name,
             "dataset_name": dataset.name,
-            "model_name": result.job.model_name,
+            "model_name": model.name,
+            "model_version": model.version,
+            "model_description": model.description,
             "status": result.status,
             "created": result.created,
             "modified": result.modified,
@@ -50,6 +55,12 @@ async def get_results(user_id: str) -> list[dict[str, Any]]:
 #     return await Result.objects.select_related("job").all(owner_id=user_id, id=job_id)
 class ResultResponse(BaseModel):
     """Result response"""
+
+    class FileResponse(BaseModel):
+        """File"""
+
+        name: str
+        size: int
     size: int
     id: uuid.UUID
     owner_id: str
@@ -60,7 +71,8 @@ class ResultResponse(BaseModel):
     created: Any
     modified: Any
     metrics: Any
-    files: list[str]
+    files: list[FileResponse]
+    parameters: dict[str, Any]
 
 
 @api_router.get("/{result_id}", tags=["results"], summary="Get a result")
@@ -69,10 +81,16 @@ async def get_result(result_id: str) -> ResultResponse:
     uuid_result_id = uuid.UUID(result_id)
     # INtiialize result as type Result and size as int
     result = await Result.objects.select_related("job").get(id=uuid_result_id)
+    files: list[ResultResponse.FileResponse] = []
     if result is None:
         raise HTTPException(status_code=404, detail=f"Result {result_id} not found")
     result_size = 0
     for file in result.files:
+        file_response = ResultResponse.FileResponse(
+            name=file,
+            size=os.path.getsize(f"{settings.results_dir}/{str(result_id)}/{file}"),
+        )
+        files.append(file_response)
         result_size += os.path.getsize(f"{settings.results_dir}/{str(result_id)}/{file}")
     result_response = ResultResponse(
         size=result_size,
@@ -85,7 +103,8 @@ async def get_result(result_id: str) -> ResultResponse:
         created=result.created,
         modified=result.modified,
         metrics=result.metrics,
-        files=result.files,
+        files=files,
+        parameters=result.parameters,
     )
     return result_response
 
@@ -124,6 +143,7 @@ async def submit_train_results(
                 f.write(file.file.read())
             index += 1
         result.files = files
+        result.modified = datetime.datetime.now()
         await result.update()
     else:
         form = await request.form()
@@ -178,6 +198,7 @@ async def submit_train_results(
         result.metrics = train_results_in.metrics
         result.files = new_files
         result.status = "done"
+        result.modified = datetime.datetime.now()
         await result.update()
         # Return 200 OK
         return None
@@ -203,3 +224,17 @@ async def zip_files_for_download(
         )
     zip_file.close()
     return FileResponse(zip_file_path, filename=f"{result_id}.zip", media_type="application/zip")
+
+@api_router.get("/download/{result_id}/{file_name}", tags=["results"], summary="Download a file from a result")
+async def download_file(
+    result_id: str,
+    file_name: str,
+) -> Any:
+    """Download a file from a result."""
+    result_uuid = uuid.UUID(result_id)
+    result = await Result.objects.select_related("job").get(id=result_uuid)
+    if result is None:
+        raise HTTPException(status_code=404, detail=f"Result {result_id} not found")
+    # Zip all files in result.files
+    file_path = f"{settings.results_dir}/{str(result_id)}/{file_name}"
+    return FileResponse(file_path, filename=file_name)

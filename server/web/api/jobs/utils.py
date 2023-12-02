@@ -101,6 +101,7 @@ async def run_model(
         result_type="train",
         owner_id=job.owner_id,
         files=files,
+        parameters=parameters,
     )
 
     # Run the script
