@@ -7,7 +7,6 @@ from server.db.models.datasets import Dataset
 from server.settings import settings
 from server.web.api.datasets.dto import DatasetIn
 
-
 async def create_file_and_get_path(dataset_id: uuid.UUID, file: UploadFile) -> str:
     """Create file and get path"""
     # Create the file path

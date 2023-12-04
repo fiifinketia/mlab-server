@@ -1867,6 +1867,27 @@ testing = ["build[virtualenv]", "filelock (>=3.4.0)", "flake8-2020", "ini2toml[l
 testing-integration = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "packaging (>=23.1)", "pytest", "pytest-enabler", "pytest-xdist", "tomli", "virtualenv (>=13.0.0)", "wheel"]
 
 [[package]]
+name = "smart-open"
+version = "6.4.0"
+description = "Utils for streaming large files (S3, HDFS, GCS, Azure Blob Storage, gzip, bz2...)"
+optional = false
+python-versions = ">=3.6,<4.0"
+files = [
+    {file = "smart_open-6.4.0-py3-none-any.whl", hash = "sha256:8d3ef7e6997e8e42dd55c74166ed21e6ac70664caa32dd940b26d54a8f6b4142"},
+    {file = "smart_open-6.4.0.tar.gz", hash = "sha256:be3c92c246fbe80ebce8fbacb180494a481a77fcdcb7c1aadb2ea5b9c2bee8b9"},
+]
+
+[package.extras]
+all = ["azure-common", "azure-core", "azure-storage-blob", "boto3", "google-cloud-storage (>=2.6.0)", "paramiko", "requests"]
+azure = ["azure-common", "azure-core", "azure-storage-blob"]
+gcs = ["google-cloud-storage (>=2.6.0)"]
+http = ["requests"]
+s3 = ["boto3"]
+ssh = ["paramiko"]
+test = ["azure-common", "azure-core", "azure-storage-blob", "boto3", "google-cloud-storage (>=2.6.0)", "moto[server]", "paramiko", "pytest", "pytest-rerunfailures", "requests", "responses"]
+webhdfs = ["requests"]
+
+[[package]]
 name = "smmap"
 version = "5.0.1"
 description = "A pure Python implementation of a sliding window memory map manager"
@@ -2015,6 +2036,40 @@ files = [
 
 [package.dependencies]
 pbr = ">=2.0.0,<2.1.0 || >2.1.0"
+
+[[package]]
+name = "streaming-form-data"
+version = "1.13.0"
+description = "Streaming parser for multipart/form-data"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "streaming-form-data-1.13.0.tar.gz", hash = "sha256:34087788c88912caa5b658020d1df66320369a8d98ec3a427dc36fd2618d864f"},
+    {file = "streaming_form_data-1.13.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:17cdc9db4b301aed212025e8f892219805e459c9c740c00d7cd6ff35a7484b06"},
+    {file = "streaming_form_data-1.13.0-cp310-cp310-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:a6e0de45d68424cfc5044aa9a9619d1de7c07ca86592e0f1eb5374f3c04517c9"},
+    {file = "streaming_form_data-1.13.0-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:369fb2dd44bf6f8f3a5f67778d5d9b8d8b6c7ac02fca76253260f669402f00b1"},
+    {file = "streaming_form_data-1.13.0-cp310-cp310-musllinux_1_1_i686.whl", hash = "sha256:d637a34865c08af368534ba75d23a4a3bfff8948bd1098e174a2aa7b976647bc"},
+    {file = "streaming_form_data-1.13.0-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:acc6f631f445f39170570e53fb920ee421fa637ec2c60b1f14c02f7563561d01"},
+    {file = "streaming_form_data-1.13.0-cp310-cp310-win32.whl", hash = "sha256:42295051b044dc16c6f334ba91c67d3d914dbb7ba216458e3bf357678a42467f"},
+    {file = "streaming_form_data-1.13.0-cp310-cp310-win_amd64.whl", hash = "sha256:6ffb54c4b7dd4d498026d79edd7001b81b5dbac567a4006b406dfa637f3523cd"},
+    {file = "streaming_form_data-1.13.0-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:4f138cde3cbfda741fe171db511382fe71ec893bf24bad224034283fc3162ce2"},
+    {file = "streaming_form_data-1.13.0-cp38-cp38-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:f24a2f74feb963d77b356f82e2a6403d2e9ea565d4575450367170e7f9625fd0"},
+    {file = "streaming_form_data-1.13.0-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a7b7258be7039d7283818fb15a051eae017836fb91d6f119af6c19c14cc47deb"},
+    {file = "streaming_form_data-1.13.0-cp38-cp38-musllinux_1_1_i686.whl", hash = "sha256:b978c74b465b7e502c2f163c9b529557e4ea872ec6270b071d9506d3023bebbb"},
+    {file = "streaming_form_data-1.13.0-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:082712694ed6e6ba1d631369ce40974fd0663fcc166fd353ebc1e5f43d2918b8"},
+    {file = "streaming_form_data-1.13.0-cp38-cp38-win32.whl", hash = "sha256:08c5860db14ea236286721cf81a75fde2f29f5cb70deab3b6d35cfa93a64f87f"},
+    {file = "streaming_form_data-1.13.0-cp38-cp38-win_amd64.whl", hash = "sha256:9641b9b8eb04182731da5c67b7cddb05f0fb075b6fe7efb34a7f47f7896213a8"},
+    {file = "streaming_form_data-1.13.0-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:0729b79c6f61cebe8a281f93883387f600f8a4fcfdf405a163205d16542747fd"},
+    {file = "streaming_form_data-1.13.0-cp39-cp39-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:45edb6c5fa03c305d03cf9e824b9029444a7b260bd4e2aafe09d0ab5f59286d3"},
+    {file = "streaming_form_data-1.13.0-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:44856e50586ee11a6e1961de25d36bf81128166ff7774102de63a7c7ec1f1733"},
+    {file = "streaming_form_data-1.13.0-cp39-cp39-musllinux_1_1_i686.whl", hash = "sha256:f6938bc5dc6c04802b01aad26d7ed3efe09d72e2cdaebdae4edcf4f5d4907af8"},
+    {file = "streaming_form_data-1.13.0-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:be40bfab33b98ef592bd1fa7a1de223a9ce429a119f5cd6cf85798552095b529"},
+    {file = "streaming_form_data-1.13.0-cp39-cp39-win32.whl", hash = "sha256:6764142fc1a205f9e99813590b58ce77697e9f54f3aa638463e0678046dddef2"},
+    {file = "streaming_form_data-1.13.0-cp39-cp39-win_amd64.whl", hash = "sha256:c99016fa12f244965d83661ade4b3f22f0e6350a198d98abd842e93ab1d8462e"},
+]
+
+[package.dependencies]
+smart-open = ">=6.0"
 
 [[package]]
 name = "tomli"
@@ -2487,4 +2542,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "580a93372d2917bca44254d82877eba2995f14ef2747813bb2febc473d6dc560"
+content-hash = "a5a2b94deee200e8d0fcec6ad237d8bc088bfa82b043960a12953d88c01c0f18"
