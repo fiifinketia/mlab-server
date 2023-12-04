@@ -25,7 +25,6 @@ psycopg2-binary = "^2.9.6"
 redis = {version = "^4.6.0", extras = ["hiredis"]}
 httptools = "^0.6.0"
 python-multipart = "^0.0.6"
-streaming-form-data = "^1.13.0"
 aiofiles = "^23.2.1"
 
 
