@@ -47,6 +47,7 @@ async def upload_dataset(file: UploadFile = File(...), data: DatasetInForm = For
             raise HTTPException(status_code=400, detail="No file provided")
 
         print(filename)
+        print(data)
 
         filepath = os.path.join(settings.datasets_dir, filename)
         async with aiofiles.open(filepath, "wb") as buffer:
