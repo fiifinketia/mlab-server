@@ -1,13 +1,15 @@
 """Routes for jobs API."""
 import os
+import uuid
+from typing import Any
 import aiofiles
 from fastapi import APIRouter, HTTPException, Request, UploadFile, Form, File
+from pydantic import ValidationError
 # from server.db.models.jobs import Job
 # from server.db.models.ml_models import Model
 from server.db.models.datasets import Dataset
 from server.web.api.datasets.dto import DatasetIn
 from server.web.api.datasets.utils import upload_new_dataset
-from typing import Any
 from server.settings import settings
 
 api_router = APIRouter()
@@ -21,7 +23,7 @@ class DatasetInForm(DatasetIn):
     description: str = Form(...)
     owner_id: str = Form(...)
 
-@api_router.get("/", tags=["datasets"], summary="Get All datasets user has access to")
+@api_router.get("", tags=["datasets"], summary="Get All datasets user has access to")
 async def fetch_datasets(user_id: str = "") -> list[Dataset]:
     all_datasets = await Dataset.objects.all(private=False)
     user_datasets = None
@@ -38,30 +40,56 @@ async def fetch_dataset(dataset_id: str) -> Dataset:
         raise HTTPException(status_code=404, detail=f"Dataset {dataset_id} not found")
     return dataset
 
-@api_router.post("/", tags=["datasets"], summary="Upload a new dataset")
-async def upload_dataset(file: UploadFile = File(...), data: DatasetInForm = Form(...)) -> Any:
+@api_router.post("", tags=["datasets"], summary="Upload a new dataset")
+async def upload_dataset(file: UploadFile = File(...), 
+        name: str = Form(...),
+        description: str = Form(...),
+        private: bool = Form(...),
+        owner_id: str = Form(...),
+    ) -> Dataset:
     """Upload a new dataset."""
     try:
 
         filename = file.filename
         if filename is None:
             raise HTTPException(status_code=400, detail="No file provided")
+        
+        dataset_id = uuid.uuid4()
+        filetype = filename.split(".")[-1] if filename else ""
 
-        print(filename)
-        print(data)
+        try:
+            os.chdir(settings.datasets_dir)
+        except FileNotFoundError:
+            os.makedirs(settings.datasets_dir)
+            os.chdir(settings.datasets_dir)
 
-        filepath = os.path.join(settings.datasets_dir, filename)
-        async with aiofiles.open(filepath, "wb") as buffer:
-            while chunk := await file.read(CHUNK_SIZE):
-                await buffer.write(chunk)
-
-    
-        # dataset = await upload_new_dataset(data)
-        # Return dataset
+        filepath = os.path.join(settings.datasets_dir, str(dataset_id) + "." + filetype)
+        
+        try:
+            filepath = os.path.join(settings.datasets_dir, str(dataset_id) + "." + filetype)
+            async with aiofiles.open(filepath, "wb") as buffer:
+                while chunk := await file.read(CHUNK_SIZE):
+                    await buffer.write(chunk)
+        # Catch any errors and delete the file
+        except Exception as e:
+            os.remove(filepath)
+            raise HTTPException(status_code=500, detail=str(e)) from e
+        
+        try:    
+            dataset = await Dataset.objects.create(
+                id=dataset_id,
+                name=name,
+                description=description,
+                path="./" + str(dataset_id),
+                content_type=file.content_type,
+                private=private,
+                owner_id=owner_id,
+            )
+        except ValidationError as e:
+            raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
     finally:
         await file.close()
-    # return dataset
-    
 
+    return dataset
