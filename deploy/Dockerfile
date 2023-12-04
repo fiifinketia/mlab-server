@@ -24,6 +24,9 @@ RUN apt-get purge -y \
   gcc \
   && rm -rf /var/lib/apt/lists/*
 
+# RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y to install cv2 dependencies
+RUN RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
+
 # Copying actuall application
 COPY . /app/src/
 RUN poetry install --only main
