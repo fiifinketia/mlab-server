@@ -20,6 +20,7 @@ class CreateModelRequest(BaseModel):
     gh_project_name: str
     parameters: dict[str, Any]
     private: bool = False
+    default_model: str = None
 
 
 
@@ -64,4 +65,5 @@ async def create_model(
         path=path,
         parameters=create_model_request.parameters,
         private=create_model_request.private,
+        default_model=create_model_request.default_model,
     )
