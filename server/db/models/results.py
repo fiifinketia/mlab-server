@@ -25,7 +25,7 @@ class Result(ormar.Model):
 
     id: uuid.UUID = ormar.UUID(primary_key=True, default=uuid.uuid4)
     owner_id: str = ormar.String(max_length=100, nullable=False)
-    name: str = ormar.String(max_length=200, default="test")
+    name: str = ormar.String(max_length=200, nullable=False)
     # Result type: [train or test]
     result_type: str = ormar.String(max_length=7, choices=list(ResultType))
     # Foreign key to job
