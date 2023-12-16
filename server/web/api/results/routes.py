@@ -130,7 +130,7 @@ async def submit_train_results(
     """Submit training results for a job."""
     if error:
         form = await request.form()
-        result_id: uuid.UUID = form["result_id"] # type: ignore
+        result_id: uuid.UUID = uuid.UUID(form["result_id"]) # type: ignore
         result = await Result.objects.select_related("job").get(id=result_id)
         if result is None:
             raise HTTPException(
@@ -172,7 +172,7 @@ async def submit_train_results(
                 # 'starlette.datastructures.UploadFile'
             elif type(value) == starlette.datastructures.UploadFile:
                 form_files.append(value) # type: ignore
-        result_id: uuid.UUID = form["result_id"] # type: ignore
+        result_id: uuid.UUID = uuid.UUID(form["result_id"]) # type: ignore
         train_results_in = TrainResultsIn(
             result_id=result_id,
             files=form_files,
@@ -204,18 +204,23 @@ async def submit_train_results(
 
         history = train_results_in.history
 
+        pretrained_model = f"{settings.results_dir}/{str(train_results_in.result_id)}/history.pkl"
+
         # Dump history into pickle file
-        with open(f"{settings.results_dir}/{str(train_results_in.result_id)}/history.pkl", "wb") as f:
+        with open(pretrained_model, "wb") as f:
             pickle.dump(history, f)
 
         new_files.append("history.pkl")
         result.metrics = train_results_in.metrics
         result.files = new_files
         result.status = "done"
+        result.pretrained_model = pretrained_model
         result.modified = datetime.datetime.now()
         await result.update()
         # Return 200 OK
         return None
+    
+
 
 @api_router.get("/download/{result_id}", tags=["results"], summary="Download a result")
 async def zip_files_for_download(

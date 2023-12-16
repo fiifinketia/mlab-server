@@ -37,3 +37,4 @@ class Result(ormar.Model):
     metrics: dict[str, float] = ormar.JSON(default=[])
     files: list[str] = ormar.JSON(default=[])
     parameters: dict[str, Any] = ormar.JSON(default={})
+    pretrained_model: str = ormar.String(max_length=300, nullable=True)
