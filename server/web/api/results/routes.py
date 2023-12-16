@@ -2,9 +2,9 @@ import datetime
 import os
 import uuid
 import zipfile
-from fastapi import APIRouter, HTTPException, Request, Response, UploadFile
+from fastapi import APIRouter, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from pydantic import BaseModel # pylint: disable=no-name-in-module
 from typing import Any
 from server.db.models.datasets import Dataset
 from server.db.models.ml_models import Model
@@ -231,7 +231,7 @@ async def submit_test_results(
     """Submit testing results for a job."""
     if error:
         form = await request.form()
-        result_id: uuid.UUID = uuid.UUID(form["result_id"])
+        result_id: uuid.UUID = uuid.UUID(form["result_id"]) # type: ignore
         result = await Result.objects.select_related("job").get(id=result_id)
         if result is None:
             raise HTTPException(
