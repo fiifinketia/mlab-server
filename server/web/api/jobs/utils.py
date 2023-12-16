@@ -15,6 +15,7 @@ from server.settings import settings
 async def train_model(
         dataset: Dataset,
         job: Job,
+        result_name: str,
         parameters: dict[str, Any] = {},
         # layers: list[Layer] = []
 ) -> Result:
@@ -110,6 +111,7 @@ async def train_model(
         owner_id=job.owner_id,
         files=files,
         parameters=parameters,
+        name=result_name,
     )
 
     # Run the script
@@ -154,6 +156,7 @@ async def train_model(
 async def test_model(
     dataset: Dataset,
     job: Job,
+    result_name: str,
     parameters: dict[str, Any] = {},
     pretrained_model: str | None = None,
 ) -> Result:
@@ -251,6 +254,7 @@ async def test_model(
         owner_id=job.owner_id,
         files=files,
         parameters=parameters,
+        name=result_name,
     )
 
     # Run the script

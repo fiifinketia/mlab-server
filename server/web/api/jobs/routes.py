@@ -35,6 +35,7 @@ class TrainModelIn(BaseModel):
     user_id: str
     dataset_id: uuid.UUID
     parameters: dict[str, Any] = {}
+    name: str
 
 class TestModelIn(BaseModel):
     """Test model in"""
@@ -44,6 +45,7 @@ class TestModelIn(BaseModel):
     dataset_id: uuid.UUID
     parameters: dict[str, Any] = {}
     use_train_result_id: Optional[uuid.UUID] = None
+    name: str
 
 
 @api_router.get("/", tags=["jobs"], summary="Get all jobs")
@@ -117,7 +119,7 @@ async def run_train_model(
     # TODO: Check dataset type or structure
 
     loop = asyncio.get_event_loop()
-    loop.create_task(train_model(dataset=dataset, job=job, parameters=train_model_in.parameters))
+    loop.create_task(train_model(dataset=dataset, job=job, result_name=train_model_in.name, parameters=train_model_in.parameters))
     return "Training model"
 
 @api_router.post("/test", tags=["jobs", "models", "results"], summary="Run job to test model")
@@ -138,8 +140,8 @@ async def run_test_model(
     # TODO: Check dataset type or structure
     if model_path is None:
         loop = asyncio.get_event_loop()
-        loop.create_task(test_model(dataset=dataset, job=job, parameters=test_model_in.parameters))
+        loop.create_task(test_model(dataset=dataset, job=job, result_name=test_model_in.name, parameters=test_model_in.parameters))
     else:
         loop = asyncio.get_event_loop()
-        loop.create_task(test_model(dataset=dataset, job=job, parameters=test_model_in.parameters, pretrained_model=model_path))
+        loop.create_task(test_model(dataset=dataset, job=job, result_name=test_model_in.name, parameters=test_model_in.parameters, pretrained_model=model_path))
     return "Testing model"
