@@ -263,17 +263,17 @@ async def submit_test_results(
     else:
         form = await request.form()
         metrics = {}
-        predictions = {}
+        predictions = {} # type: ignore
         form_files: list[UploadFile] = []
         for key, value in form.items():
             if key.startswith("metrics"):
-                metrics = json.loads(value)
+                metrics = json.loads(value) # type: ignore
             elif key.startswith("predictions"):
-                predictions = value
+                predictions = json.loads(value) # type: ignore
                 # 'starlette.datastructures.UploadFile'
             elif type(value) == starlette.datastructures.UploadFile:
-                form_files.append(value)
-        result_id: uuid.UUID = uuid.UUID(form["result_id"])
+                form_files.append(value) # type: ignore
+        result_id: uuid.UUID = uuid.UUID(form["result_id"]) # type: ignore
         result = await Result.objects.select_related("job").get(id=result_id)
         if result is None:
             raise HTTPException(
@@ -300,12 +300,11 @@ async def submit_test_results(
                 f.write(file.file.read())
             index += 1
 
-        predictions = json.loads(predictions)
         result.metrics = metrics
         result.files = new_files
+        result.predictions = predictions
         result.status = "done"
         result.modified = datetime.datetime.now()
-        result.predictions = predictions
         await result.update()
         # Return 200 OK
         return None
