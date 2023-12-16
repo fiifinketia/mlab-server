@@ -12,7 +12,7 @@ from server.db.models.jobs import Job
 from server.db.models.ml_models import Model
 from server.db.models.results import Result
 from server.settings import settings
-from server.web.api.jobs.utils import run_model
+from server.web.api.jobs.utils import train_model, test_model
 
 api_router = APIRouter()
 
@@ -30,6 +30,15 @@ class JobIn(BaseModel):
 
 class TrainModelIn(BaseModel):
     """Train model in"""
+
+    job_id: uuid.UUID
+    user_id: str
+    dataset_id: uuid.UUID
+    parameters: dict[str, Any] = {}
+    use_train_result_id: Optional[uuid.UUID] = None
+
+class TestModelIn(BaseModel):
+    """Test model in"""
 
     job_id: uuid.UUID
     user_id: str
@@ -96,7 +105,7 @@ async def create_job(
 
 
 @api_router.post("/train", tags=["jobs", "models", "results"], summary="Run job to train model")
-async def train_model(
+async def run_train_model(
     train_model_in: TrainModelIn,
 ) -> Any:
     """Run job to train model."""
@@ -108,5 +117,29 @@ async def train_model(
     # TODO: Check dataset type or structure
 
     loop = asyncio.get_event_loop()
-    loop.create_task(run_model(dataset=dataset, job=job, parameters=train_model_in.parameters))
+    loop.create_task(train_model(dataset=dataset, job=job, parameters=train_model_in.parameters))
     return "Training model"
+
+@api_router.post("/test", tags=["jobs", "models", "results"], summary="Run job to test model")
+async def run_test_model(
+    test_model_in: TrainModelIn,
+) -> Any:
+    """Run job to test model."""
+    # If dataset_id is defined then file and dataset_name is ignored
+    # Else upload new dataset file for user
+    dataset = await Dataset.objects.get(id=test_model_in.dataset_id)
+    job = await Job.objects.get(id=test_model_in.job_id)
+    model_path = None
+    if test_model_in.use_train_result_id is not None:
+        train_result = await Result.objects.get(id=test_model_in.use_train_result_id)
+        model_path = settings.results_dir + train_result.pretrained_model
+
+    # Check dataset type or structure
+    # TODO: Check dataset type or structure
+    if model_path is None:
+        loop = asyncio.get_event_loop()
+        loop.create_task(test_model(dataset=dataset, job=job, parameters=test_model_in.parameters))
+    else:
+        loop = asyncio.get_event_loop()
+        loop.create_task(test_model(dataset=dataset, job=job, parameters=test_model_in.parameters, pretrained_model=model_path))
+    return "Testing model"
