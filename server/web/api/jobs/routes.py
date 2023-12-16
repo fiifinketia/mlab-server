@@ -132,7 +132,7 @@ async def run_test_model(
     model_path = None
     if test_model_in.use_train_result_id is not None:
         train_result = await Result.objects.get(id=test_model_in.use_train_result_id)
-        model_path = settings.results_dir + train_result.pretrained_model
+        model_path = settings.results_dir + "/" + train_result.pretrained_model
 
     # Check dataset type or structure
     # TODO: Check dataset type or structure
