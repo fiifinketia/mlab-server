@@ -269,7 +269,8 @@ async def test_model(
                 install_output.stderr,
             )
         # Run the script
-        trained_model = pretrained_model if pretrained_model is not None else model.default_model
+        trained_model = {pretrained_model} if pretrained_model is not None else f"{model_path}/{model.default_model}"
+
         run_test_model(
             model_path=model_path,
             script_path=f"{model_path}/{entry_point}.py",
