@@ -20,7 +20,6 @@ async def train_model(
 ) -> Result:
     """Train model with a provided dataset and store results"""
     # Get the dataset path
-    if 
     dataset_path = settings.datasets_dir + dataset.path
     job_path = os.path.join(settings.jobs_dir, str(job.id))
 
@@ -156,7 +155,7 @@ async def test_model(
     dataset: Dataset,
     job: Job,
     parameters: dict[str, Any] = {},
-    pretrained_model: str = None,
+    pretrained_model: str | None = None,
 ) -> Result:
     """Test model with a provided dataset and store results"""
     # Get the dataset path
