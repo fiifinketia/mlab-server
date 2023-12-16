@@ -35,7 +35,6 @@ class TrainModelIn(BaseModel):
     user_id: str
     dataset_id: uuid.UUID
     parameters: dict[str, Any] = {}
-    use_train_result_id: Optional[uuid.UUID] = None
 
 class TestModelIn(BaseModel):
     """Test model in"""
@@ -44,6 +43,7 @@ class TestModelIn(BaseModel):
     user_id: str
     dataset_id: uuid.UUID
     parameters: dict[str, Any] = {}
+    use_train_result_id: Optional[uuid.UUID] = None
 
 
 @api_router.get("/", tags=["jobs"], summary="Get all jobs")
@@ -122,7 +122,7 @@ async def run_train_model(
 
 @api_router.post("/test", tags=["jobs", "models", "results"], summary="Run job to test model")
 async def run_test_model(
-    test_model_in: TrainModelIn,
+    test_model_in: TestModelIn,
 ) -> Any:
     """Run job to test model."""
     # If dataset_id is defined then file and dataset_name is ignored
