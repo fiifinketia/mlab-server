@@ -13,7 +13,6 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.9"
 fastapi = "^0.100.0"
-uvicorn = { version = "^0.22.0", extras = ["standard"] }
 gunicorn = "^21.2.0"
 pydantic = { version = "^1", extras=["dotenv"] }
 yarl = "^1.9.2"
@@ -26,6 +25,7 @@ redis = {version = "^4.6.0", extras = ["hiredis"]}
 httptools = "^0.6.0"
 python-multipart = "^0.0.6"
 aiofiles = "^23.2.1"
+uvicorn = {extras = ["standard"], version = "^0.24.0.post1"}
 
 
 [tool.poetry.dev-dependencies]
