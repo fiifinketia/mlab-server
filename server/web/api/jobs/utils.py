@@ -126,12 +126,20 @@ async def train_model(
                 install_output.stderr,
             )
         # Run the script
-        run_train_model(
+        executor = ProcessPoolExecutor()
+        executor.submit(
+            run_train_model,
             model_path=model_path,
             script_path=f"{model_path}/{entry_point}.py",
             result_id=result_id,
             config_path=f"{job_path}/config.txt",
         )
+        # run_train_model(
+        #     model_path=model_path,
+        #     script_path=f"{model_path}/{entry_point}.py",
+        #     result_id=result_id,
+        #     config_path=f"{job_path}/config.txt",
+        # )
     except subprocess.CalledProcessError as e:
         error_message = ""
         if e.stderr is not None:
@@ -271,13 +279,23 @@ async def test_model(
         # Run the script
         trained_model = {pretrained_model} if pretrained_model is not None else f"{model_path}/{model.default_model}"
 
-        run_test_model(
+        executor = ProcessPoolExecutor()
+        executor.submit(
+            run_test_model,
             model_path=model_path,
             script_path=f"{model_path}/{entry_point}.py",
             result_id=result_id,
             config_path=f"{job_path}/config.txt",
             trained_model=trained_model,
         )
+
+        # run_test_model(
+        #     model_path=model_path,
+        #     script_path=f"{model_path}/{entry_point}.py",
+        #     result_id=result_id,
+        #     config_path=f"{job_path}/config.txt",
+        #     trained_model=trained_model,
+        # )
     except subprocess.CalledProcessError as e:
         error_message = ""
         if e.stderr is not None:
