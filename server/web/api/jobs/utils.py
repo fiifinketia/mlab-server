@@ -1,4 +1,5 @@
 """UTILS FOR JOBS API"""
+import datetime
 import os
 import subprocess
 from typing import Any
@@ -158,6 +159,7 @@ async def train_model(
         files.append("error.txt")
         result.files = files
         result.status = "error"
+        result.modified = datetime.datetime.now()
         await result.update()
     return result
 
@@ -314,6 +316,7 @@ async def test_model(
         files.append("error.txt")
         result.files = files
         result.status = "error"
+        result.modified = datetime.datetime.now()
         await result.update()
     return result
 
