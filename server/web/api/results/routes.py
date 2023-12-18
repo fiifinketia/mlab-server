@@ -201,6 +201,9 @@ async def submit_train_results(
                 )
             new_files.append(file_name)
             file_path = f"{settings.results_dir}/{str(train_results_in.result_id)}/{file_name}"
+            # create directory if it doesn't exist
+            if not os.path.exists(os.path.dirname(file_path)):
+                os.makedirs(os.path.dirname(file_path))
             with open(file_path, "wb") as f:
                 f.write(file.file.read())
             index += 1
@@ -254,6 +257,9 @@ async def submit_test_results(
                 file_name = str(result_id) + str(index) + ".png"
             files.append(file_name)
             file_path = f"{settings.results_dir}/{str(result_id)}/{file_name}"
+            # create directory if it doesn't exist
+            if not os.path.exists(os.path.dirname(file_path)):
+                os.makedirs(os.path.dirname(file_path))
             with open(file_path, "wb") as f:
                 f.write(file.file.read())
             index += 1
