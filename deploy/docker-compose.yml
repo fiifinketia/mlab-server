@@ -37,24 +37,6 @@ services:
       SERVER_DB_BASE: server
       SERVER_REDIS_HOST: server-redis
 
-  db:
-    image: postgres:13.8-bullseye
-    hostname: server-db
-    environment:
-      POSTGRES_PASSWORD: "server"
-      POSTGRES_USER: "server"
-      POSTGRES_DB: "server"
-    volumes:
-    - server-db-data:/var/lib/postgresql/data
-    ports:
-    - "5432:5432"
-    restart: always
-    healthcheck:
-      test: pg_isready -U server
-      interval: 2s
-      timeout: 3s
-      retries: 40
-
   migrator:
     image: server:${SERVER_VERSION:-latest}
     restart: "no"
@@ -63,7 +45,7 @@ services:
       SERVER_DB_HOST: server-db
       SERVER_DB_PORT: 5432
       SERVER_DB_USER: server
-      SERVER_DB_PASS: server
+      SERVER_DB_PASS: server@123
       SERVER_DB_BASE: server
     depends_on:
       db:
