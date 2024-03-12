@@ -24,8 +24,6 @@ services:
       # Exposes application port.
     - "8000:8000"
     depends_on:
-      db:
-        condition: service_healthy
       redis:
         condition: service_healthy
     environment:
@@ -47,9 +45,6 @@ services:
       SERVER_DB_USER: server
       SERVER_DB_PASS: server@123
       SERVER_DB_BASE: server
-    depends_on:
-      db:
-        condition: service_healthy
 
   redis:
     image: bitnami/redis:6.2.5
@@ -66,8 +61,6 @@ services:
 
 
 volumes:
-  server-db-data:
-    name: server-db-data
   filez-datasets:
     name: filez-datasets
   filez-jobs:
