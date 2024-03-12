@@ -28,10 +28,10 @@ services:
         condition: service_healthy
     environment:
       SERVER_HOST: 0.0.0.0
-      SERVER_DB_HOST: server-db
+      SERVER_DB_HOST: localhost
       SERVER_DB_PORT: 5432
       SERVER_DB_USER: server
-      SERVER_DB_PASS: server@123
+      SERVER_DB_PASS: server
       SERVER_DB_BASE: server
       SERVER_REDIS_HOST: server-redis
 
@@ -40,10 +40,10 @@ services:
     restart: "no"
     command: alembic upgrade head
     environment:
-      SERVER_DB_HOST: server-db
+      SERVER_DB_HOST: localhost
       SERVER_DB_PORT: 5432
       SERVER_DB_USER: server
-      SERVER_DB_PASS: server@123
+      SERVER_DB_PASS: server
       SERVER_DB_BASE: server
 
   redis:
