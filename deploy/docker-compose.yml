@@ -18,6 +18,7 @@ services:
     - filez-datasets:/var/lib/docker/volumes/filez-datasets
     - filez-jobs:/var/lib/docker/volumes/filez-jobs
     - filez-results:/var/lib/docker/volumes/filez-results
+    - .:/var/www/mlab/server
     env_file:
     - .env
     ports:
@@ -57,6 +58,18 @@ services:
       interval: 1s
       timeout: 3s
       retries: 50
+  
+  alembic:
+    image: server:${SERVER_VERSION:-latest}
+    restart: "no"
+    entrypoint: alembic
+    container_name: alembic
+    volumes:
+      - .:/var/www/mlab/server
+    working_dir: /var/www/mlab/server
+    profiles: ["alembic"]
+    networks:
+      - default
 
 
 
