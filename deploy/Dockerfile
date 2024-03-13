@@ -10,7 +10,7 @@ RUN poetry config virtualenvs.create false
 
 # # Copying requirements of a project
 # COPY pyproject.toml poetry.lock /var/www/mlab/server/
-# WORKDIR /var/www/mlab/server
+WORKDIR /var/www//mlab/server
 
 # Copy from local /var to container /var
 # ADD ../filez/models /var/lib/docker/volumes/filez/
