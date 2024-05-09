@@ -29,7 +29,7 @@ services:
         condition: service_healthy
     environment:
       SERVER_HOST: 0.0.0.0
-      SERVER_DB_HOST: 197.255.122.198
+      SERVER_DB_HOST: 197.255.122.207
       SERVER_DB_PORT: 5432
       SERVER_DB_USER: server
       SERVER_DB_PASS: server
@@ -41,7 +41,7 @@ services:
     restart: "no"
     command: alembic upgrade head
     environment:
-      SERVER_DB_HOST: 197.255.122.198
+      SERVER_DB_HOST: 197.255.122.207
       SERVER_DB_PORT: 5432
       SERVER_DB_USER: server
       SERVER_DB_PASS: server

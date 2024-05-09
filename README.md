@@ -162,3 +162,25 @@ docker run -p "5432:5432" -e "POSTGRES_PASSWORD=server" -e "POSTGRES_USER=server
 ```bash
 pytest -vv .
 ```
+
+## Server Deploy
+
+```bash
+
+poetry config virtualenvs.create false
+disal@disalserver:~$ docker-compose -f deploy/docker-compose.yml --project-directory . up --build -d
+disal@disalserver:~$ sudo cp -r ~/Projects/MLab/mlab-server/. . 
+disal@disalserver:~$ sudo cp -r ~/Projects/MLab/mlab-server/. . | yes
+
+disal@disalserver:~$ docker-compose -f deploy/docker-compose.yml --project-directory . down
+disal@disalserver:~$ cd /var/www/mlab/server/
+disal@disalserver:~$ git pull
+disal@disalserver:~$ cd ~/Projects/MLab/mlab-server/
+
+
+
+disal@disalserver:~$ docker-compose -f deploy/docker-compose.yml --project-directory . run --rm alembic merge heads 
+disal@disalserver:~$ docker-compose -f deploy/docker-compose.yml --project-directory . run --rm alembic merge heads --force
+disal@disalserver:~$ docker-compose -f deploy/docker-compose.yml --project-directory . run --rm alembic history
+
+disal@disalserver:~$ poetry source show

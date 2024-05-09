@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     """
 
     host: str = "0.0.0.0"
-    port: int = 8000
+    port: int = int(os.getenv("PORT", "8000"))
     # quantity of workers for uvicorn, get from env
     workers_count: int = int(os.getenv("WORKERS_COUNT", "1"))
     # Enable uvicorn reloading
@@ -42,11 +42,11 @@ class Settings(BaseSettings):
     environment: str = "dev"
     log_level: LogLevel = LogLevel.INFO
     # Variables for the database
-    db_host: str = "0.0.0.0"
-    db_port: int = 5432
-    db_user: str = "server"
-    db_pass: str = "server"
-    db_base: str = "server"
+    db_host: str = os.getenv("DB_HOST", "server-db")
+    db_port: int = int(os.getenv("DB_PORT", "5432"))
+    db_user: str = os.getenv("DB_USER", "server")
+    db_pass: str = os.getenv("DB_PASS", "")
+    db_base: str = os.getenv("DB_BASE", "server")
     db_echo: bool = False
 
     # Variables for Redis
