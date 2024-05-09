@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     with environment variables.
     """
 
-    host: str = "0.0.0.0"
+    host: str = os.getenv("HOST", "0.0.0.0")
     port: int = int(os.getenv("PORT", "8000"))
     # quantity of workers for uvicorn, get from env
     workers_count: int = int(os.getenv("WORKERS_COUNT", "1"))
@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     reload: bool = False
 
     # Current environment
-    environment: str = "dev"
+    environment: str = os.getenv("ENVIRONMENT", "dev")
     log_level: LogLevel = LogLevel.INFO
     # Variables for the database
     db_host: str = os.getenv("DB_HOST", "server-db")

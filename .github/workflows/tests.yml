@@ -75,5 +75,5 @@ jobs:
     - name: Run pytest check
       run: poetry run pytest -vv --cov="server" .
       env:
-        SERVER_HOST: "0.0.0.0"
-        SERVER_DB_HOST: localhost
+        SERVER_HOST: ${{ secrets.HOST }}
+        SERVER_DB_HOST: ${{ secrets.DB_HOST }}

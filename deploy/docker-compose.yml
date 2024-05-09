@@ -29,11 +29,11 @@ services:
         condition: service_healthy
     environment:
       SERVER_HOST: 0.0.0.0
-      SERVER_DB_HOST: 197.255.122.207
-      SERVER_DB_PORT: 5432
-      SERVER_DB_USER: server
-      SERVER_DB_PASS: server
-      SERVER_DB_BASE: server
+      SERVER_DB_HOST: ${DB_HOST}
+      SERVER_DB_PORT: ${DB_PORT}
+      SERVER_DB_USER: ${DB_USER}  
+      SERVER_DB_PASS: ${DB_PASS}
+      SERVER_DB_BASE: ${DB_BASE}
       SERVER_REDIS_HOST: server-redis
 
   migrator:
@@ -41,11 +41,11 @@ services:
     restart: "no"
     command: alembic upgrade head
     environment:
-      SERVER_DB_HOST: 197.255.122.207
-      SERVER_DB_PORT: 5432
-      SERVER_DB_USER: server
-      SERVER_DB_PASS: server
-      SERVER_DB_BASE: server
+      SERVER_DB_HOST: ${DB_HOST}
+      SERVER_DB_PORT: ${DB_PORT}
+      SERVER_DB_USER: ${DB_USER}
+      SERVER_DB_PASS: ${DB_PASS}
+      SERVER_DB_BASE: ${DB_BASE}
 
   redis:
     image: bitnami/redis:6.2.5
