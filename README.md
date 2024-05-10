@@ -168,19 +168,19 @@ pytest -vv .
 ```bash
 
 poetry config virtualenvs.create false
-disal@disalserver:~$ docker-compose -f deploy/docker-compose.yml --project-directory . up --build -d
-disal@disalserver:~$ sudo cp -r ~/Projects/MLab/mlab-server/. . 
-disal@disalserver:~$ sudo cp -r ~/Projects/MLab/mlab-server/. . | yes
+docker-compose -f deploy/docker-compose.yml --project-directory . up --build -d
+sudo cp -r ~/Projects/MLab/mlab-server/. . 
+sudo cp -r ~/Projects/MLab/mlab-server/. . | yes
 
-disal@disalserver:~$ docker-compose -f deploy/docker-compose.yml --project-directory . down
-disal@disalserver:~$ cd /var/www/mlab/server/
-disal@disalserver:~$ git pull
-disal@disalserver:~$ cd ~/Projects/MLab/mlab-server/
+docker-compose -f deploy/docker-compose.yml --project-directory . down
+cd /var/www/mlab/server/
+git pull
+cd ~/Projects/MLab/mlab-server/
 
 
 
-disal@disalserver:~$ docker-compose -f deploy/docker-compose.yml --project-directory . run --rm alembic merge heads 
-disal@disalserver:~$ docker-compose -f deploy/docker-compose.yml --project-directory . run --rm alembic merge heads --force
-disal@disalserver:~$ docker-compose -f deploy/docker-compose.yml --project-directory . run --rm alembic history
+docker-compose -f deploy/docker-compose.yml --project-directory . run --rm alembic merge heads 
+docker-compose -f deploy/docker-compose.yml --project-directory . run --rm alembic merge heads --force
+docker-compose -f deploy/docker-compose.yml --project-directory . run --rm alembic history
 
-disal@disalserver:~$ poetry source show
+poetry source show
