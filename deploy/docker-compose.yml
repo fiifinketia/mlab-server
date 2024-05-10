@@ -23,7 +23,7 @@ services:
     - .env
     ports:
       # Exposes application port.
-    - "8000:8000"
+    - ${DB_HOST}:${DB_PORT}
     depends_on:
       redis:
         condition: service_healthy
