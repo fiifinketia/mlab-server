@@ -28,7 +28,7 @@ services:
       redis:
         condition: service_healthy
     environment:
-      SERVER_HOST: 0.0.0.0
+      SERVER_HOST: ${HOST}
       SERVER_DB_HOST: ${DB_HOST}
       SERVER_DB_PORT: ${DB_PORT}
       SERVER_DB_USER: ${DB_USER}  
