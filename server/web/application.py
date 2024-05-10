@@ -25,7 +25,7 @@ def get_app() -> FastAPI:
         default_response_class=UJSONResponse,
     )
 
-    origins = ["*"]
+    origins = ["*", "https://mlab.appatechlab.com:8080"]
 
     app.add_middleware(
         CORSMiddleware,
