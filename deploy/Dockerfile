@@ -23,7 +23,7 @@ RUN apt-get purge -y \
   gcc \
   && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y to install cv2 dependencies
+# RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y to install cv2 dependencies
 RUN apt-get update && apt-get install libgl1 python3-opencv libleptonica-dev tesseract-ocr libtesseract-dev python3-pil tesseract-ocr-eng tesseract-ocr-script-latn -y
 
 # Copying actuall application
