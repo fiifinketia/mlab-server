@@ -48,7 +48,7 @@ class TestModelIn(BaseModel):
     name: str
 
 
-@api_router.get("/", tags=["jobs"], summary="Get all jobs")
+@api_router.get("", tags=["jobs"], summary="Get all jobs")
 async def get_jobs(user_id: str) -> list[Job]:
     """Get all jobs."""
     if user_id is None:
@@ -57,7 +57,7 @@ async def get_jobs(user_id: str) -> list[Job]:
     return await Job.objects.select_related("results").all(owner_id=user_id)
 
 
-@api_router.post("/", tags=["jobs"], summary="Create a new job")
+@api_router.post("", tags=["jobs"], summary="Create a new job")
 async def create_job(
     job_in: JobIn,
 ) -> None:

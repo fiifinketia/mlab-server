@@ -24,13 +24,13 @@ class CreateModelRequest(BaseModel):
 
 
 
-@api_router.get("/", tags=["models"], summary="Get all models")
+@api_router.get("", tags=["models"], summary="Get all models")
 async def get_models() -> list[Model]:
     """Get all models."""
     return await Model.objects.all()
 
 
-@api_router.post("/", tags=["models"], summary="Create a new model")
+@api_router.post("", tags=["models"], summary="Create a new model")
 async def create_model(
     create_model_request: CreateModelRequest,
 ) -> None:
