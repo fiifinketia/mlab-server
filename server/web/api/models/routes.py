@@ -9,6 +9,7 @@ from fastapi import APIRouter, HTTPException
 
 from server.db.models.ml_models import Model
 from server.settings import settings
+from server.web.api.utils import create_git_project, make_git_path
 
 api_router = APIRouter()
 
@@ -43,9 +44,16 @@ async def create_model(
         os.chdir(settings.models_dir)
 
     # Check if path to model exists
-    path = "./" + create_model_request.gh_project_name
-    if not os.path.exists(path):
-        raise HTTPException(status_code=404, detail=f"Project {path} does not exist")
+    git_path = make_git_path(create_model_request.name)
+
+    filepath = os.path.join(settings.models_dir, git_path)
+
+    try:
+        create_git_project(filepath)
+    except Exception as e:
+        os.remove(filepath)
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
     # Get full path to model
     # Create model
     model_id = uuid.uuid4()
@@ -62,7 +70,7 @@ async def create_model(
         description=create_model_request.description,
         owner_id=create_model_request.owner_id,
         version=create_model_request.version,
-        path=path,
+        path="/" + git_path,
         parameters=create_model_request.parameters,
         private=create_model_request.private,
         default_model=create_model_request.default_model,

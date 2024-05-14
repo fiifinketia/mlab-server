@@ -48,3 +48,10 @@ async def upload_new_dataset(
     )
     # Return dataset
     return dataset
+
+def make_git_path(name: str) -> str:
+    # use all lower case, replace any spaces with hyphens, and append ".git" to the name.
+    return name.lower().replace(" ", "-") + ".git"
+
+def create_git_project(filepath: str) -> None:
+    os.system(f"git init --bare {filepath}")

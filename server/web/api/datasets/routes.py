@@ -1,15 +1,13 @@
 """Routes for jobs API."""
 import os
 import uuid
-from typing import Any
-import aiofiles
-from fastapi import APIRouter, HTTPException, Request, UploadFile, Form, File
+from fastapi import APIRouter, HTTPException, Form
 from pydantic import ValidationError
 # from server.db.models.jobs import Job
 # from server.db.models.ml_models import Model
 from server.db.models.datasets import Dataset
 from server.web.api.datasets.dto import DatasetIn
-from server.web.api.datasets.utils import upload_new_dataset
+from server.web.api.utils import create_git_project, make_git_path
 from server.settings import settings
 
 api_router = APIRouter()
@@ -41,7 +39,8 @@ async def fetch_dataset(dataset_id: str) -> Dataset:
     return dataset
 
 @api_router.post("", tags=["datasets"], summary="Upload a new dataset")
-async def upload_dataset(file: UploadFile = File(...), 
+async def create_dataset(
+        # file: UploadFile = File(...), 
         name: str = Form(...),
         description: str = Form(...),
         private: bool = Form(...),
@@ -50,27 +49,19 @@ async def upload_dataset(file: UploadFile = File(...),
     """Upload a new dataset."""
     try:
 
-        filename = file.filename
-        if filename is None:
-            raise HTTPException(status_code=400, detail="No file provided")
-        
         dataset_id = uuid.uuid4()
-        filetype = filename.split(".")[-1] if filename else ""
 
         try:
             os.chdir(settings.datasets_dir)
         except FileNotFoundError:
             os.makedirs(settings.datasets_dir)
             os.chdir(settings.datasets_dir)
+        git_path = make_git_path(name)
 
-        filepath = os.path.join(settings.datasets_dir, str(dataset_id) + "." + filetype)
+        filepath = os.path.join(settings.datasets_dir, git_path)
         
         try:
-            filepath = os.path.join(settings.datasets_dir, str(dataset_id) + "." + filetype)
-            async with aiofiles.open(filepath, "wb") as buffer:
-                while chunk := await file.read(CHUNK_SIZE):
-                    await buffer.write(chunk)
-        # Catch any errors and delete the file
+            create_git_project(filepath)
         except Exception as e:
             os.remove(filepath)
             raise HTTPException(status_code=500, detail=str(e)) from e
@@ -80,8 +71,7 @@ async def upload_dataset(file: UploadFile = File(...),
                 id=dataset_id,
                 name=name,
                 description=description,
-                path="/" + str(dataset_id) + "." + filetype,
-                content_type=file.content_type,
+                path="/" + git_path,
                 private=private,
                 owner_id=owner_id,
             )
@@ -89,7 +79,5 @@ async def upload_dataset(file: UploadFile = File(...),
             raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
-    finally:
-        await file.close()
 
     return dataset

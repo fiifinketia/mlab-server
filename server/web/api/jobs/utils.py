@@ -24,14 +24,9 @@ async def train_model(
     # Get the dataset path
     dataset_path = settings.datasets_dir + dataset.path
     job_path = os.path.join(settings.jobs_dir, str(job.id))
-
-    # Get the model path using the job model_name
-    model = await Model.objects.get(id=job.model_id)
-    model_path = os.path.join(settings.models_dir, model.path)
     entry_point = "__train__"
 
     # Update the config file
-
     old_parameters = {}
     with open(f"{job_path}/config.txt", "r") as f:
         lines = f.readlines()
@@ -118,7 +113,7 @@ async def train_model(
     # Run the script
 
     try:
-        install_output = run_install_requirements(model_path)
+        install_output = run_install_requirements(job_path)
         if install_output.returncode != 0:
             raise subprocess.CalledProcessError(
                 install_output.returncode,
@@ -130,17 +125,11 @@ async def train_model(
         executor = ProcessPoolExecutor()
         executor.submit(
             run_train_model,
-            model_path=model_path,
-            script_path=f"{model_path}/{entry_point}.py",
+            job_path=job_path,
+            script_path=f"{job_path}/{entry_point}.py",
             result_id=result_id,
             config_path=f"{job_path}/config.txt",
         )
-        # run_train_model(
-        #     model_path=model_path,
-        #     script_path=f"{model_path}/{entry_point}.py",
-        #     result_id=result_id,
-        #     config_path=f"{job_path}/config.txt",
-        # )
     except subprocess.CalledProcessError as e:
         error_message = ""
         if e.stderr is not None:
@@ -174,12 +163,7 @@ async def test_model(
     # Get the dataset path
     dataset_path = settings.datasets_dir + dataset.path
     job_path = os.path.join(settings.jobs_dir, str(job.id))
-
-    # Get the model path using the job model_name
-    model = await Model.objects.get(id=job.model_id)
-    model_path = os.path.join(settings.models_dir, model.path)
     entry_point = "__test__"
-
 
 
     # Update the config file
@@ -270,7 +254,7 @@ async def test_model(
     # Run the script
 
     try:
-        install_output = run_install_requirements(model_path)
+        install_output = run_install_requirements(job_path)
         if install_output.returncode != 0:
             raise subprocess.CalledProcessError(
                 install_output.returncode,
@@ -284,8 +268,8 @@ async def test_model(
         executor = ProcessPoolExecutor()
         executor.submit(
             run_test_model,
-            model_path=model_path,
-            script_path=f"{model_path}/{entry_point}.py",
+            job_path=job_path,
+            script_path=f"{job_path}/{entry_point}.py",
             result_id=result_id,
             config_path=f"{job_path}/config.txt",
             trained_model=trained_model,
@@ -324,15 +308,18 @@ async def test_model(
         
 
 def run_install_requirements(
-    model_path: str,
+    job_path: str
 ) -> subprocess.CompletedProcess[bytes]:
     """Install requirements in a virtual environment using ProcessPoolExecutor"""
     # Activate the virtual environment
-    venv_path = f"{model_path}/venv"
+    os.chdir(settings.jobs_dir)
+    venv_path = f"{job_path}/venv"
+    if not os.path.exists(venv_path):
+        subprocess.run(f"python3 -m venv {venv_path}", shell=True, executable="/bin/bash", check=True)
     activate_venv = f"source {venv_path}/bin/activate"
 
     # Run install requirements
-    install_requirements = f"pip install -r {model_path}/requirements.txt"
+    install_requirements = f"pip install -r {job_path}/requirements.txt"
 
     # Combine the commands
     command = f"{activate_venv} && {install_requirements}"
@@ -341,14 +328,15 @@ def run_install_requirements(
     return subprocess.run(command, shell=True, executable="/bin/bash", check=True)
 
 def run_train_model(
-    model_path: str,
+    job_path: str,
     script_path: str,
     result_id: uuid.UUID,
     config_path: str,
 ) -> subprocess.CompletedProcess[bytes]:
     """Run a script in a virtual environment using ProcessPoolExecutor"""
     # Activate the virtual environment
-    venv_path = f"{model_path}/venv"
+    os.chdir(settings.jobs_dir)
+    venv_path = f"{job_path}/venv"
     activate_venv = f"source {venv_path}/bin/activate"
 
     # Prepare the command to run the script with arguments
@@ -361,7 +349,7 @@ def run_train_model(
     return subprocess.run(command, shell=True, executable="/bin/bash", check=True)
 
 def run_test_model(
-    model_path: str,
+    job_path: str,
     script_path: str,
     result_id: uuid.UUID,
     config_path: str,
@@ -369,7 +357,8 @@ def run_test_model(
 ) -> subprocess.CompletedProcess[bytes]:
     """Run a script in a virtual environment using ProcessPoolExecutor"""
     # Activate the virtual environment
-    venv_path = f"{model_path}/venv"
+    os.chdir(settings.jobs_dir)
+    venv_path = f"{job_path}/venv"
     activate_venv = f"source {venv_path}/bin/activate"
 
     # Prepare the command to run the script with arguments

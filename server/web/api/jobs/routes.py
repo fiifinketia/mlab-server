@@ -71,8 +71,6 @@ async def create_job(
     # convert job.id to string
     str_job_id = str(job_id)
     os.mkdir(str_job_id)
-    # Update job path for job
-    # Copy config.txt for model and add to job folder
     os.chdir(str_job_id)
     # Find model and get path
     model = None
@@ -84,7 +82,7 @@ async def create_job(
             detail=f"Model {job_in.model_id} does not exist",
         )
     model_path = os.path.join(settings.models_dir, model.path)
-    os.system(f"cp {model_path}/config.txt .")
+    os.system(f"git clone {model_path} .")
     path = f"/{str_job_id}"
     parameters = job_in.parameters
     if parameters is None:
