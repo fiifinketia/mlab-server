@@ -39,7 +39,11 @@ async def fetch_dataset(dataset_id: str) -> DatasetResponse:
     if dataset is None:
         raise HTTPException(status_code=404, detail=f"Dataset {dataset_id} not found")
     repo = Git(f"{settings.datasets_dir}{dataset.path}")
-    files: list[str] = repo.ls_files()
+    if repo.ls_files() is None:
+        files: list[str] = []
+    else:
+        files = repo.ls_files()
+    print("files")
     print(files)
     return DatasetResponse(
         id=str(dataset.id),
