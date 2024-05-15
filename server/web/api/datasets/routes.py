@@ -60,10 +60,7 @@ async def create_dataset(
 
         filepath = os.path.join(settings.datasets_dir, git_path)
         
-        try:
-            create_git_project(filepath)
-        except Exception as e:
-            raise e
+        create_git_project(filepath)
         
         try:    
             dataset = await Dataset.objects.create(
