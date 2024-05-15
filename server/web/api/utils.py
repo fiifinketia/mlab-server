@@ -1,5 +1,6 @@
 import os
-from git import Repo
+from typing import Any
+from git import PathLike, Repo, Tree
 from fastapi import HTTPException
 
 
@@ -13,9 +14,12 @@ def create_git_project(filepath: str) -> None:
         raise HTTPException(status_code=409, detail=f"Path {filepath} already exists")
     Repo.init(path=filepath, mkdir=True,bare=True)
 
-def print_files_from_git(root, level=0)-> None:
-    """Print files from a git repository."""
-    for entry in root:
-        print(f'{"-" * 4 * level}| {entry.path}, {entry.type}')
-        if entry.type == "tree":
-            print_files_from_git(entry, level + 1)
+def list_files_from_git(root: Tree, level:int=0)-> list[Any]:
+    """list files from a git repository."""
+    files = []
+    for item in root:
+        if item.type == "blob":
+            files.append(item.path)
+        elif item.type == "tree":
+            files.extend(list_files_from_git(item, level + 1))
+    return files

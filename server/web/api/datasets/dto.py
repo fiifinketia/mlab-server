@@ -1,3 +1,4 @@
+from typing import Any
 from fastapi import File, UploadFile
 from pydantic import BaseModel
 
@@ -23,5 +24,5 @@ class DatasetResponse(BaseModel):
     owner_id: str
     created_at: str
     updated_at: str
-    files: list[str] = []
+    files: list[Any] = []
     # tags: list = []

@@ -3,6 +3,7 @@ import os
 from typing import Any
 import uuid
 
+from git import Repo
 from pydantic import BaseModel
 
 from fastapi import APIRouter, HTTPException
@@ -11,7 +12,7 @@ from git.cmd import Git
 from server.db.models.ml_models import Model
 from server.settings import settings
 from server.web.api.models.dto import ModelResponse
-from server.web.api.utils import create_git_project, make_git_path
+from server.web.api.utils import create_git_project, list_files_from_git, make_git_path
 
 api_router = APIRouter()
 
@@ -38,12 +39,8 @@ async def get_modle(model_id: str) -> ModelResponse:
     model = await Model.objects.get(id=model_uuid)
     if model is None:
         raise HTTPException(status_code=404, detail=f"Model {model_id} not found")
-    repo = Git(f"{settings.models_dir}{model.path}")
-    if repo.ls_files() is None:
-        files: list[str] = []
-    else:
-        files = repo.ls_files()
-    
+    repo = Repo(f"{settings.models_dir}{model.path}")
+    files = list_files_from_git(repo.head.commit.tree)
     return ModelResponse(
         id=str(model.id),
         name=model.name,

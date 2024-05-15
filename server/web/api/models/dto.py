@@ -16,5 +16,5 @@ class ModelResponse(BaseModel):
     updated_at: str
     parameters: dict[str, Any]
     layers: list[dict[str, Any]] = []
-    files: list[str] = []
+    files: list[Any] = []
     # tags: list = []
