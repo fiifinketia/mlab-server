@@ -5,10 +5,12 @@ import uuid
 
 from pydantic import BaseModel
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from git.cmd import Git
 
 from server.db.models.ml_models import Model
 from server.settings import settings
+from server.web.api.models.dto import ModelResponse
 from server.web.api.utils import create_git_project, make_git_path
 
 api_router = APIRouter()
@@ -28,6 +30,27 @@ class CreateModelRequest(BaseModel):
 async def get_models() -> list[Model]:
     """Get all models."""
     return await Model.objects.all()
+
+@api_router.get("/{model_id}", tags=["models"], summary="Get a model")
+async def get_modle(model_id: str) -> Model:
+    """Get a model."""
+    model = await Model.objects.get(id=model_id)
+    if model is None:
+        raise HTTPException(status_code=404, detail=f"Model {model_id} not found")
+    repo = Git(f"{settings.models_dir}{model.path}")
+    files = repo.ls_files()
+    return ModelResponse(
+        id=str(model.id),
+        name=model.name,
+        description=model.description,
+        path=model.path,
+        private=model.private,
+        owner_id=model.owner_id,
+        created_at=str(model.created),
+        updated_at=str(model.modified),
+        parameters=model.parameters,
+        files=files,
+    )
 
 
 @api_router.post("", tags=["models"], summary="Create a new model")
