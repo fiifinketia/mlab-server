@@ -40,7 +40,10 @@ async def get_modle(model_id: str) -> ModelResponse:
     if model is None:
         raise HTTPException(status_code=404, detail=f"Model {model_id} not found")
     repo = Repo(f"{settings.models_dir}{model.path}")
-    files = list_files_from_git(repo.head.commit.tree)
+    try:
+        files = list_files_from_git(repo.head.commit.tree)
+    except:
+        files = []
     return ModelResponse(
         id=str(model.id),
         name=model.name,
