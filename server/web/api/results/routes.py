@@ -78,7 +78,6 @@ class ResultResponse(BaseModel):
     model_description: str
     dataset_name: str
     dataset_description: str
-    dataset_content: str
 
 
 @api_router.get("/{result_id}", tags=["results"], summary="Get a result")
@@ -118,7 +117,6 @@ async def get_result(result_id: str) -> ResultResponse:
         model_description=model.description,
         dataset_name=dataset.name,
         dataset_description=dataset.description,
-        dataset_content=dataset.content_type,
     )
     return result_response
 

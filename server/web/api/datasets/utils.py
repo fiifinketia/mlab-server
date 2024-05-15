@@ -42,7 +42,6 @@ async def upload_new_dataset(
         name=dataset_in.name,
         description=dataset_in.description,
         path=path,
-        content_type=dataset_in.file.content_type,
         private=dataset_in.private,
         owner_id=dataset_in.owner_id,
     )

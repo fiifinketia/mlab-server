@@ -18,7 +18,6 @@ class Dataset(ormar.Model):
     name: str = ormar.String(max_length=200)
     description: str = ormar.String(max_length=200, nullable=True)
     path: str = ormar.String(max_length=200)
-    content_type: str = ormar.String(max_length=100)
     private: bool = ormar.Boolean(default=False)
     owner_id: str = ormar.String(max_length=200)
     created: datetime.datetime = ormar.DateTime(default=datetime.datetime.now)
