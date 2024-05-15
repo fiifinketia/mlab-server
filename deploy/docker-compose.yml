@@ -15,9 +15,15 @@ services:
     - type: bind
       source: ${MODELS_DIR?:MODELS_DIR not set}
       target: /var/lib/docker/volumes/filez-models
-    - filez-datasets:/var/lib/docker/volumes/filez-datasets
-    - filez-jobs:/var/lib/docker/volumes/filez-jobs
-    - filez-results:/var/lib/docker/volumes/filez-results
+    - type: bind
+      source: ${DATASETS_DIR?:DATASETS_DIR not set}
+      target: /var/lib/docker/volumes/filez-datasets
+    - type: bind
+      source: ${JOBS_DIR?:JOBS_DIR not set}
+      target: /var/lib/docker/volumes/filez-jobs
+    - type: bind
+      source: ${RESULTS_DIR?:RESULTS_DIR not set}
+      target: /var/lib/docker/volumes/filez-results
     - .:/var/www/mlab/server
     env_file:
     - .env
