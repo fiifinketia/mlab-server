@@ -8,7 +8,7 @@ from pydantic import ValidationError
 # from server.db.models.ml_models import Model
 from server.db.models.datasets import Dataset
 from server.web.api.datasets.dto import DatasetIn, DatasetResponse
-from server.web.api.utils import create_git_project, list_files_from_git, make_git_path, print_files_from_git
+from server.web.api.utils import create_git_project, list_files_from_git, make_git_path
 from server.settings import settings
 
 api_router = APIRouter()
