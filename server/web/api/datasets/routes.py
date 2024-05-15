@@ -64,7 +64,7 @@ async def create_dataset(
             create_git_project(filepath)
         except Exception as e:
             os.remove(filepath)
-            raise HTTPException(status_code=500, detail=str(e)) from e
+            raise HTTPException(status_code=400, detail="Error creating new repo") from e
         
         try:    
             dataset = await Dataset.objects.create(
