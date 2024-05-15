@@ -5,7 +5,7 @@ import uuid
 
 from pydantic import BaseModel
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
 from server.db.models.ml_models import Model
 from server.settings import settings
@@ -47,11 +47,7 @@ async def create_model(
 
     filepath = os.path.join(settings.models_dir, git_path)
 
-    try:
-        create_git_project(filepath)
-    except Exception as e:
-        os.remove(filepath)
-        raise HTTPException(status_code=500, detail=str(e)) from e
+    create_git_project(filepath)
 
     # Get full path to model
     # Create model
