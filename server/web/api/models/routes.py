@@ -39,7 +39,7 @@ async def get_modle(model_id: str) -> ModelResponse:
     if model is None:
         raise HTTPException(status_code=404, detail=f"Model {model_id} not found")
     repo = Git(f"{settings.models_dir}{model.path}")
-    files = repo.ls_files()
+    files: list[str] = repo.ls_files()
     return ModelResponse(
         id=str(model.id),
         name=model.name,
