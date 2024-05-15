@@ -2,11 +2,12 @@
 import os
 import uuid
 from fastapi import APIRouter, HTTPException, Form
+from git.cmd import Git
 from pydantic import ValidationError
 # from server.db.models.jobs import Job
 # from server.db.models.ml_models import Model
 from server.db.models.datasets import Dataset
-from server.web.api.datasets.dto import DatasetIn
+from server.web.api.datasets.dto import DatasetIn, DatasetResponse
 from server.web.api.utils import create_git_project, make_git_path
 from server.settings import settings
 
@@ -31,12 +32,24 @@ async def fetch_datasets(user_id: str = "") -> list[Dataset]:
     return all_datasets
 
 @api_router.get("/{dataset_id}", tags=["datasets"], summary="Get a dataset")
-async def fetch_dataset(dataset_id: str) -> Dataset:
+async def fetch_dataset(dataset_id: str) -> DatasetResponse:
     """Get a dataset."""
     dataset = await Dataset.objects.get(id=dataset_id)
     if dataset is None:
         raise HTTPException(status_code=404, detail=f"Dataset {dataset_id} not found")
-    return dataset
+    repo = Git(f"{settings.datasets_dir}{dataset.path}")
+    files = repo.ls_files()
+    return DatasetResponse(
+        id=str(dataset.id),
+        name=dataset.name,
+        description=dataset.description,
+        path=dataset.path,
+        private=dataset.private,
+        owner_id=dataset.owner_id,
+        created_at=str(dataset.created),
+        updated_at=str(dataset.modified),
+        files=files,
+    )
 
 @api_router.post("", tags=["datasets"], summary="Upload a new dataset")
 async def create_dataset(

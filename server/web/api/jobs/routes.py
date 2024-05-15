@@ -6,6 +6,7 @@ import uuid
 import asyncio
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from git import Repo
 
 from server.db.models.datasets import Dataset
 from server.db.models.jobs import Job
@@ -82,7 +83,7 @@ async def create_job(
             detail=f"Model {job_in.model_id} does not exist",
         )
     model_path = os.path.join(settings.models_dir, model.path)
-    os.system(f"git clone {model_path} .")
+    Repo.clone(model_path, ".")
     path = f"/{str_job_id}"
     parameters = job_in.parameters
     if parameters is None:
