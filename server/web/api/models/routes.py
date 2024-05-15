@@ -42,7 +42,8 @@ async def get_modle(model_id: str) -> ModelResponse:
     repo = Repo(f"{settings.models_dir}{model.path}")
     try:
         files = list_files_from_git(repo.head.commit.tree)
-    except:
+    except Exception as e:
+        print(e)
         files = []
     return ModelResponse(
         id=str(model.id),
