@@ -18,7 +18,6 @@ class CreateModelRequest(BaseModel):
     description: str
     owner_id: str
     version: str
-    gh_project_name: str
     parameters: dict[str, Any]
     private: bool = False
     default_model: str = None
