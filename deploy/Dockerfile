@@ -3,6 +3,9 @@ RUN apt-get update && apt-get install -y \
   gcc \
   && rm -rf /var/lib/apt/lists/*
 
+# Install git for docker
+RUN apt-get -y install git
+
 RUN pip install poetry==1.4.2
 
 # Configuring poetry
