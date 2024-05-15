@@ -34,7 +34,8 @@ async def fetch_datasets(user_id: str = "") -> list[Dataset]:
 @api_router.get("/{dataset_id}", tags=["datasets"], summary="Get a dataset")
 async def fetch_dataset(dataset_id: str) -> DatasetResponse:
     """Get a dataset."""
-    dataset = await Dataset.objects.get(id=dataset_id)
+    dataset_uuid = uuid.UUID(dataset_id)
+    dataset = await Dataset.objects.get(id=dataset_uuid)
     if dataset is None:
         raise HTTPException(status_code=404, detail=f"Dataset {dataset_id} not found")
     repo = Git(f"{settings.datasets_dir}{dataset.path}")

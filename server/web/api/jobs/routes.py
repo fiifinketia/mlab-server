@@ -83,7 +83,7 @@ async def create_job(
             detail=f"Model {job_in.model_id} does not exist",
         )
     model_path = os.path.join(settings.models_dir, model.path)
-    Repo.clone(model_path, ".")
+    Repo.clone_from(model_path, ".")
     path = f"/{str_job_id}"
     parameters = job_in.parameters
     if parameters is None:

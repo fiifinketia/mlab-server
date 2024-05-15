@@ -32,9 +32,10 @@ async def get_models() -> list[Model]:
     return await Model.objects.all()
 
 @api_router.get("/{model_id}", tags=["models"], summary="Get a model")
-async def get_modle(model_id: str) -> Model:
+async def get_modle(model_id: str) -> ModelResponse:
     """Get a model."""
-    model = await Model.objects.get(id=model_id)
+    model_uuid = uuid.UUID(model_id)
+    model = await Model.objects.get(id=model_uuid)
     if model is None:
         raise HTTPException(status_code=404, detail=f"Model {model_id} not found")
     repo = Git(f"{settings.models_dir}{model.path}")
