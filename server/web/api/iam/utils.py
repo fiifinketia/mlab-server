@@ -26,7 +26,6 @@ def generate_key_pair(user_id: str) -> list[bytes]:
         raise Exception("Error connecting to server")
     
     ssh.stdin.write(ssh_command.encode())
-    ssh.stdin.close()
     if ssh.stdout is None:
         raise Exception("Error connecting to server")
     result = ssh.stdout.readlines()
