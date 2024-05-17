@@ -17,6 +17,8 @@ async def gen_key_pair(user_id: str) -> dict[str, bytes]:
         if old_key_pair:
             await UserKeyPair.objects.delete(user_id=user_id)
             remove_key_pair(user_id)
+    except ormar.exceptions.NoMatch:
+        pass
     finally:
         new_key_pair = generate_key_pair(user_id)
         await UserKeyPair.objects.create(

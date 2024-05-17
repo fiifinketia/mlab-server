@@ -20,7 +20,7 @@ def generate_key_pair(user_id: str) -> list[bytes]:
       )
     if ssh.stderr:
         print(ssh.stderr.readlines())
-        raise Exception("Error connecting to server")
+        # raise Exception("Error connecting to server")
     
     if ssh.stdin is None:
         raise Exception("Error connecting to server")
