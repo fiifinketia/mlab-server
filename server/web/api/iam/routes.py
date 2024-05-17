@@ -7,7 +7,7 @@ from server.web.api.iam.utils import generate_key_pair, remove_key_pair
 
 api_router = APIRouter()
 
-@api_router.post("/{user_id}/ssh_key")
+@api_router.post("/ssh_key")
 async def gen_key_pair(user_id: str) -> dict[str, bytes]:
     """Generate a new key pair for a user."""
     old_key_pair = UserKeyPair.objects.get(user_id=user_id)
@@ -27,7 +27,7 @@ async def gen_key_pair(user_id: str) -> dict[str, bytes]:
 
     return key_pair
 
-@api_router.get("/{user_id}/ssh_key")
+@api_router.get("/ssh_key")
 async def get_key_pair(user_id: str) -> dict[str, bytes|str]:
     """Get the key pair for a user."""
     key_pair = await UserKeyPair.objects.get(user_id=user_id)
