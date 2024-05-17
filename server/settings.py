@@ -126,6 +126,15 @@ class Settings(BaseSettings):
         results_dir = "/var/lib/docker/volumes/filez-results"
         # create the directory if it does not exist
         return results_dir
+    
+    @property
+    def ssh_key_path(self) -> str:
+        """
+        Return path to SSH key."""
+        # create a path to the SSH key
+        ssh_key_path = "/root/.ssh/id_rsa"
+        # create the directory if it does not exist
+        return ssh_key_path
 
     class Config:
         env_file = ".env"

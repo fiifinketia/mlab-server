@@ -32,6 +32,7 @@ async def get_models() -> list[Model]:
     """Get all models."""
     return await Model.objects.all()
 
+# TODO: add branch name to request query
 @api_router.get("/{model_id}", tags=["models"], summary="Get a model")
 async def get_modle(model_id: str) -> ModelResponse:
     """Get a model."""
@@ -42,8 +43,7 @@ async def get_modle(model_id: str) -> ModelResponse:
     repo = Repo(f"{settings.models_dir}{model.path}")
     try:
         files = list_files_from_git(repo.head.commit.tree)
-    except Exception as e:
-        print(e)
+    except:
         files = []
     return ModelResponse(
         id=str(model.id),

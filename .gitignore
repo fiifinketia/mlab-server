@@ -111,6 +111,7 @@ celerybeat.pid
 # Environments
 .env*
 .venv
+.id_rsa
 env/
 venv/
 ENV/
