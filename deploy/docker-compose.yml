@@ -24,6 +24,9 @@ services:
     - type: bind
       source: ${RESULTS_DIR?:RESULTS_DIR not set}
       target: /var/lib/docker/volumes/filez-results
+    - type: bind
+      source: ${SSH_KEY_PATH?:SSH_KEY_PATH not set}
+      target: /root/.ssh
     - .:/var/www/mlab/server
     env_file:
     - .env
