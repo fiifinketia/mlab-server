@@ -10,6 +10,32 @@ def generate_key_pair(user_id: str) -> list[bytes]:
     ssh_command = f"ssh-keygen -t rsa -b 4096 -f /root/.ssh/id_{user_id} -N ''"
     ssh_command += f" && cat /root/.ssh/id_{user_id}.pub"
     ssh_command += f" && cat /root/.ssh/id_{user_id}"
+    # get ip
+    ip = subprocess.run(
+        "curl ifconfig.me",
+        stdout=subprocess.PIPE,
+        shell=True
+      ).stdout.decode().strip()
+    print(ip)
+    # check host key
+    knowhost = subprocess.Popen(
+        "ssh-keygen -R appatechlab.com",
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=True
+      )
+    if knowhost.stderr:
+        print(knowhost.stderr.readlines())
+        # raise Exception("Error connecting to server")
+    
+    # if knowhost.stdin is None:
+    #     raise Exception("Error connecting to server")
+    
+    if knowhost.stdout is None:
+        raise Exception("Error connecting to server")
+
+    print(knowhost.stdout.readlines())
 
     ssh = subprocess.Popen(
         ssh_connect_command,
