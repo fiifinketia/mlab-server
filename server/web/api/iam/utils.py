@@ -6,7 +6,7 @@ from server.settings import settings
 def generate_key_pair(user_id: str) -> list[bytes]:
   # SSH to server and generate a key pair
   # Return the key pair
-    ssh_connect_command = f"ssh -i {settings.ssh_key_path} disal@appatechlab.com -oPort=6000"
+    ssh_connect_command = f"ssh -i {settings.ssh_key_path} disal@appatechlab.com -oPort=6000 -tt"
     ssh_command = f"ssh-keygen -t rsa -b 4096 -f /root/.ssh/id_{user_id} -N ''"
     ssh_command += f" && cat /root/.ssh/id_{user_id}.pub"
     ssh_command += f" && cat /root/.ssh/id_{user_id}"
