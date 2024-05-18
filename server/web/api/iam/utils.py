@@ -13,10 +13,7 @@ def generate_key_pair(user_id: str) -> list[bytes]:
         stderr=subprocess.PIPE,
         shell=True
       )
-    if ssh_keygen.stderr:
-        print(ssh_keygen.stderr.readlines())
-        raise Exception("Error generating key pair")
-    
+
     if ssh_keygen.stdout is None:
         raise Exception("Error generating key pair")
     
