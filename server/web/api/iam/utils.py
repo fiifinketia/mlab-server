@@ -12,7 +12,7 @@ def generate_key_pair(user_id: str) -> list[bytes]:
     ssh_command += f" && cat /root/.ssh/id_{user_id}"
     # get ip
     ip = subprocess.run(
-        "ipconfig eth0 | grep 'inet ' | awk '{print $2}' | cut -d: -f2",
+        "ipconfig getifaddr en0",
         stdout=subprocess.PIPE,
         shell=True
       ).stdout.decode().strip()
