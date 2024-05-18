@@ -132,7 +132,7 @@ class Settings(BaseSettings):
         """
         Return path to SSH key."""
         # create a path to the SSH key
-        ssh_key_path = "/root/.ssh/id_rsa"
+        ssh_key_path = "/root/.ssh"
         # create the directory if it does not exist
         return ssh_key_path
 

@@ -4,59 +4,25 @@ from server.settings import settings
 
 
 def generate_key_pair(user_id: str) -> list[bytes]:
-  # SSH to server and generate a key pair
-  # Return the key pair
-    ssh_connect_command = f"ssh -i {settings.ssh_key_path} disal@appatechlab.com -oPort=6000 -tt"
-    ssh_command = f"ssh-keygen -t rsa -b 4096 -f /root/.ssh/id_{user_id} -N ''"
-    ssh_command += f" && cat /root/.ssh/id_{user_id}.pub"
-    ssh_command += f" && cat /root/.ssh/id_{user_id}"
-    # get ip
-    ip = subprocess.run(
-        "ifconfig | grep inet | grep -v inet6 | awk '{print $2}' | head -n 1",
-        stdout=subprocess.PIPE,
-        shell=True
-      ).stdout.decode().strip()
-    print(ip)
-    # check host key
-    knowhost = subprocess.Popen(
-        "ssh-keygen -R appatechlab.com",
+  # Generate key_pair at settings.ssh_key_path
+    ssh_keygen_command = f"ssh-keygen -t rsa -b 4096 -f {settings.ssh_key_path}/id_{user_id} -q -N ''"
+    ssh_keygen = subprocess.Popen(
+        ssh_keygen_command,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         shell=True
       )
-    if knowhost.stderr:
-        print(knowhost.stderr.readlines())
-        # raise Exception("Error connecting to server")
+    if ssh_keygen.stderr:
+        print(ssh_keygen.stderr.readlines())
+        raise Exception("Error generating key pair")
     
-    # if knowhost.stdin is None:
-    #     raise Exception("Error connecting to server")
+    if ssh_keygen.stdout is None:
+        raise Exception("Error generating key pair")
     
-    if knowhost.stdout is None:
-        raise Exception("Error connecting to server")
-
-    print(knowhost.stdout.readlines())
-
-    ssh = subprocess.Popen(
-        ssh_connect_command,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        shell=True
-      )
-    if ssh.stderr:
-        print(ssh.stderr.readlines())
-        # raise Exception("Error connecting to server")
+    print(ssh_keygen.stdout.readlines())
     
-    if ssh.stdin is None:
-        raise Exception("Error connecting to server")
-    
-    ssh.stdin.write(ssh_command.encode())
-    if ssh.stdout is None:
-        raise Exception("Error connecting to server")
-    result = ssh.stdout.readlines()
-    print(result)
-    return result
+    return ssh_keygen.stdout.readlines()
 
 
 def remove_key_pair(user_id: str) -> None:
