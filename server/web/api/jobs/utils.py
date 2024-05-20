@@ -29,8 +29,8 @@ async def train_model(
     dataset_path = settings.datasets_dir + "/tmp" + dataset.path
     model_path = settings.models_dir + "/tmp" + model.path
     # clone specific jobb.repo_hash branch
-    Repo.clone_from(dataset_repo.working_dir, dataset_path, branch=job.repo_hash)
-    Repo.clone_from(model_repo.working_dir, model_path, branch=job.repo_hash)
+    Repo.clone_from(dataset_repo.working_dir, dataset_path, branch= job.dataset_branch if job.dataset_branch is not None else "master")
+    Repo.clone_from(model_repo.working_dir, model_path, branch= job.model_branch if job.model_branch is not None else "master")
 
     entry_point = "__train__"
 
@@ -182,8 +182,8 @@ async def test_model(
     dataset_path = settings.datasets_dir + "/tmp" + dataset.path
     model_path = settings.models_dir + "/tmp" + model.path
 
-    Repo.clone_from(dataset_repo.working_dir, dataset_path, branch=job.repo_hash)
-    Repo.clone_from(model_repo.working_dir, model_path, branch=job.repo_hash)
+    Repo.clone_from(dataset_repo.working_dir, dataset_path, branch= job.dataset_branch if job.dataset_branch is not None else "master")
+    Repo.clone_from(model_repo.working_dir, model_path, branch= job.model_branch if job.model_branch is not None else "master")
     entry_point = "__test__"
 
 
