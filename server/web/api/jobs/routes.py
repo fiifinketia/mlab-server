@@ -64,15 +64,6 @@ async def create_job(
 ) -> None:
     """Create a new job."""
     job_id = uuid.uuid4()
-    try:
-        os.chdir(settings.jobs_dir)
-    except FileNotFoundError:
-        os.makedirs(settings.jobs_dir)
-        os.chdir(settings.jobs_dir)
-    # convert job.id to string
-    str_job_id = str(job_id)
-    os.mkdir(str_job_id)
-    os.chdir(str_job_id)
     # Find model and get path
     model = None
     try:
@@ -82,7 +73,7 @@ async def create_job(
             status_code=404,
             detail=f"Model {job_in.model_id} does not exist",
         )
-    model_path = os.path.join(settings.models_dir, model.path)
+    model_path = settings.models_dir + model.path
     model_repo = Repo(model_path)
     parameters = job_in.parameters
     if parameters is None:
