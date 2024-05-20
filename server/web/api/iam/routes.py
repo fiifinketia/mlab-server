@@ -14,7 +14,7 @@ class UpdateKeyRequest(BaseModel):
     public_key: str
 
 @api_router.post("/ssh_key")
-async def gen_key_pair(user_id: str, public_key: str) -> UserKeyPair:
+async def gen_key_pair(user_id: str, rbody: UpdateKeyRequest) -> UserKeyPair:
     """Generate a new key pair for a user."""
     try:
         old_key_pair = await UserKeyPair.objects.get(user_id=user_id)
@@ -27,7 +27,7 @@ async def gen_key_pair(user_id: str, public_key: str) -> UserKeyPair:
         add_public_key(user_id)
         key = await UserKeyPair.objects.create(
           user_id=user_id,
-          public_key=public_key
+          public_key=rbody.public_key
         )
 
     return key
