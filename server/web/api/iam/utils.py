@@ -22,27 +22,18 @@ def generate_key_pair(user_id: str) -> list[bytes]:
     return ssh_keygen.stdout.readlines()
 
 
-def remove_key_pair(user_id: str) -> None:
-  # SSH to server and remove the key pair
-    ssh_connect_command = f"ssh -i {settings.ssh_key_path} disal@appatechlab.com -oPort=6000"
-    ssh_command = f"rm /root/.ssh/id_{user_id}"
-    ssh_command += f" && rm /root/.ssh/id_{user_id}.pub"
+def add_public_key(public_key: str) -> None:
+    # Add publbic key to authorized_keys in settings.ssh_key_path
+    authorized_keys_path = f"{settings.ssh_key_path}/authorized_keys"
+    with open(authorized_keys_path, "a") as f:
+        f.write(public_key + "\n")
 
-    ssh = subprocess.Popen(
-        ssh_connect_command,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        shell=True
-      )
-    if ssh.stderr:
-        print(ssh.stderr.readlines())
-        raise Exception("Error connecting to server")
-    
-    if ssh.stdin is None:
-        raise Exception("Error connecting to server")
-    
-    ssh.stdin.write(ssh_command.encode())
-    ssh.stdin.close()
-    if ssh.stdout is None:
-        raise Exception("Error connecting to server")
+def remove_public_key(public_key: str) -> None:
+    # Remove public key from authorized_keys in settings.ssh_key_path
+    authorized_keys_path = f"{settings.ssh_key_path}/authorized_keys"
+    with open(authorized_keys_path, "r") as f:
+        lines = f.readlines()
+    with open(authorized_keys_path, "w") as f:
+        for line in lines:
+            if line.strip("\n") != public_key:
+                f.write(line)
