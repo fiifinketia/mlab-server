@@ -24,15 +24,13 @@ async def train_model(
     """Train model with a provided dataset and store results"""
     dataset_repo = Repo(settings.datasets_dir + dataset.path)
     model_repo = Repo(settings.models_dir + model.path)
-    model_git = model_repo.git
-    model_git.checkout(job.repo_hash)
 
     # clone dataset and model to a tmp directory and discard after use
     dataset_path = settings.datasets_dir + "/tmp" + dataset.path
     model_path = settings.models_dir + "/tmp" + model.path
-
-    Repo.clone_from(dataset_repo.working_dir, dataset_path)
-    Repo.clone_from(model_repo.working_dir, model_path)
+    # clone specific jobb.repo_hash branch
+    Repo.clone_from(dataset_repo.working_dir, dataset_path, branch=job.repo_hash)
+    Repo.clone_from(model_repo.working_dir, model_path, branch=job.repo_hash)
 
     entry_point = "__train__"
 
@@ -178,15 +176,14 @@ async def test_model(
     # Get the dataset path
     dataset_repo = Repo(settings.datasets_dir + dataset.path)
     model_repo = Repo(settings.models_dir + model.path)
-    model_git = model_repo.git
-    model_git.checkout(job.repo_hash)
+
 
     # clone dataset and model to a tmp directory and discard after use
     dataset_path = settings.datasets_dir + "/tmp" + dataset.path
     model_path = settings.models_dir + "/tmp" + model.path
 
-    Repo.clone_from(dataset_repo.working_dir, dataset_path)
-    Repo.clone_from(model_repo.working_dir, model_path)
+    Repo.clone_from(dataset_repo.working_dir, dataset_path, branch=job.repo_hash)
+    Repo.clone_from(model_repo.working_dir, model_path, branch=job.repo_hash)
     entry_point = "__test__"
 
 
