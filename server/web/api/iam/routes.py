@@ -24,7 +24,7 @@ async def gen_key_pair(user_id: str, rbody: UpdateKeyRequest) -> UserKeyPair:
     except ormar.exceptions.NoMatch:
         pass
     finally:
-        add_public_key(user_id)
+        add_public_key(rbody.public_key)
         key = await UserKeyPair.objects.create(
           user_id=user_id,
           public_key=rbody.public_key
