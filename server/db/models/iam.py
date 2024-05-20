@@ -4,6 +4,7 @@
 
 import datetime
 from typing import List
+import uuid
 
 import ormar
 
@@ -16,7 +17,7 @@ class UserKeyPair(ormar.Model):
     class Meta(BaseMeta):
         tablename = "user_key_pairs"
 
-    id: str = ormar.String(primary_key=True, max_length=200)
+    id: uuid.UUID = ormar.UUID(primary_key=True, default=uuid.uuid4)
     user_id: str = ormar.String(max_length=200)
     public_key: str = ormar.String(max_length=20000)
     created: datetime.datetime = ormar.DateTime(default=datetime.datetime.now)
