@@ -83,8 +83,7 @@ async def create_job(
             detail=f"Model {job_in.model_id} does not exist",
         )
     model_path = os.path.join(settings.models_dir, model.path)
-    Repo.clone_from(model_path, ".")
-    path = f"/{str_job_id}"
+    model_repo = Repo(model_path)
     parameters = job_in.parameters
     if parameters is None:
         parameters = model.parameters
@@ -95,7 +94,7 @@ async def create_job(
         id=job_id,
         name=job_in.name,
         description=job_in.description,
-        path=path,
+        repo_hash=model_repo.head.commit.hexsha,
         # tags=job_in.tags,
         owner_id=job_in.owner_id,
         model_id=job_in.model_id,
@@ -114,11 +113,12 @@ async def run_train_model(
     # Else upload new dataset file for user
     dataset = await Dataset.objects.get(id=train_model_in.dataset_id)
     job = await Job.objects.get(id=train_model_in.job_id)
+    model = await Model.objects.get(id=job.model_id)
     # Check dataset type or structure
     # TODO: Check dataset type or structure
 
     loop = asyncio.get_event_loop()
-    loop.create_task(train_model(dataset=dataset, job=job, result_name=train_model_in.name, parameters=train_model_in.parameters))
+    loop.create_task(train_model(dataset=dataset, job=job, model=model, result_name=train_model_in.name, parameters=train_model_in.parameters))
     return "Training model"
 
 @api_router.post("/test", tags=["jobs", "models", "results"], summary="Run job to test model")
@@ -130,6 +130,8 @@ async def run_test_model(
     # Else upload new dataset file for user
     dataset = await Dataset.objects.get(id=test_model_in.dataset_id)
     job = await Job.objects.get(id=test_model_in.job_id)
+    model = await Model.objects.get(id=job.model_id)
+
     model_path = None
     if test_model_in.use_train_result_id is not None:
         train_result = await Result.objects.get(id=test_model_in.use_train_result_id)
@@ -139,8 +141,8 @@ async def run_test_model(
     # TODO: Check dataset type or structure
     if model_path is None:
         loop = asyncio.get_event_loop()
-        loop.create_task(test_model(dataset=dataset, job=job, result_name=test_model_in.name, parameters=test_model_in.parameters))
+        loop.create_task(test_model(dataset=dataset, job=job, model=model, result_name=test_model_in.name, parameters=test_model_in.parameters))
     else:
         loop = asyncio.get_event_loop()
-        loop.create_task(test_model(dataset=dataset, job=job, result_name=test_model_in.name, parameters=test_model_in.parameters, pretrained_model=model_path))
+        loop.create_task(test_model(dataset=dataset, job=job, model=model, result_name=test_model_in.name, parameters=test_model_in.parameters, pretrained_model=model_path))
     return "Testing model"

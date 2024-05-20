@@ -11,24 +11,34 @@ from server.db.models.jobs import Job
 from server.db.models.ml_models import Model
 from server.db.models.results import Result
 from server.settings import settings
-
+from git import Repo
 
 async def train_model(
         dataset: Dataset,
         job: Job,
+        model: Model,
         result_name: str,
         parameters: dict[str, Any] = {},
         # layers: list[Layer] = []
 ) -> Result:
     """Train model with a provided dataset and store results"""
-    # Get the dataset path
-    dataset_path = settings.datasets_dir + dataset.path
-    job_path = os.path.join(settings.jobs_dir, str(job.id))
+    dataset_repo = Repo(settings.datasets_dir + dataset.path)
+    model_repo = Repo(settings.models_dir + model.path)
+    model_git = model_repo.git
+    model_git.checkout(job.repo_hash)
+
+    # clone dataset and model to a tmp directory and discard after use
+    dataset_path = settings.datasets_dir + "/tmp" + dataset.path
+    model_path = settings.models_dir + "/tmp" + model.path
+
+    Repo.clone_from(dataset_repo.working_dir, dataset_path)
+    Repo.clone_from(model_repo.working_dir, model_path)
+
     entry_point = "__train__"
 
     # Update the config file
     old_parameters = {}
-    with open(f"{job_path}/config.txt", "r") as f:
+    with open(f"{model_path}/config.txt", "r") as f:
         lines = f.readlines()
         for line in lines:
             if line[0] == ";":
@@ -41,7 +51,7 @@ async def train_model(
                 if args[0] == "PARAM":
                     old_parameters[args[1]] = args[3].strip()
 
-    with open(f"{job_path}/config.txt", "r") as file:
+    with open(f"{model_path}/config.txt", "r") as file:
         filedata = file.read()
         # Replace the entire PARAM dataset_url line with the new dataset path,
         # the dataset path in the config is un
@@ -58,7 +68,7 @@ async def train_model(
         )
 
         # Save the updated config file
-        with open(f"{job_path}/config.txt", "w") as file:
+        with open(f"{model_path}/config.txt", "w") as file:
             file.write(filedata)
 
     # Create results directory
@@ -68,7 +78,7 @@ async def train_model(
 
     # paste config file to results directory also for future reference
     subprocess.run(
-        f"cp {job_path}/config.txt {settings.results_dir}/{result_id}/config.txt",
+        f"cp {model_path}/config.txt {settings.results_dir}/{result_id}/config.txt",
         shell=True,
         executable="/bin/bash",
         check=True,
@@ -113,7 +123,7 @@ async def train_model(
     # Run the script
 
     try:
-        install_output = run_install_requirements(job_path)
+        install_output = run_install_requirements(model_path)
         if install_output.returncode != 0:
             raise subprocess.CalledProcessError(
                 install_output.returncode,
@@ -125,10 +135,10 @@ async def train_model(
         executor = ProcessPoolExecutor()
         executor.submit(
             run_train_model,
-            job_path=job_path,
-            script_path=f"{job_path}/{entry_point}.py",
+            model_path=model_path,
+            script_path=f"{model_path}/{entry_point}.py",
             result_id=result_id,
-            config_path=f"{job_path}/config.txt",
+            config_path=f"{model_path}/config.txt",
         )
     except subprocess.CalledProcessError as e:
         error_message = ""
@@ -150,26 +160,40 @@ async def train_model(
         result.status = "error"
         result.modified = datetime.datetime.now()
         await result.update()
+    finally:
+        # clear tmp repos
+        os.system(f"rm -rf {dataset_path}")
+        os.system(f"rm -rf {model_path}")
     return result
 
 async def test_model(
     dataset: Dataset,
     job: Job,
+    model: Model,
     result_name: str,
     parameters: dict[str, Any] = {},
     pretrained_model: str | None = None,
 ) -> Result:
     """Test model with a provided dataset and store results"""
     # Get the dataset path
-    dataset_path = settings.datasets_dir + dataset.path
-    job_path = os.path.join(settings.jobs_dir, str(job.id))
+    dataset_repo = Repo(settings.datasets_dir + dataset.path)
+    model_repo = Repo(settings.models_dir + model.path)
+    model_git = model_repo.git
+    model_git.checkout(job.repo_hash)
+
+    # clone dataset and model to a tmp directory and discard after use
+    dataset_path = settings.datasets_dir + "/tmp" + dataset.path
+    model_path = settings.models_dir + "/tmp" + model.path
+
+    Repo.clone_from(dataset_repo.working_dir, dataset_path)
+    Repo.clone_from(model_repo.working_dir, model_path)
     entry_point = "__test__"
 
 
     # Update the config file
 
     old_parameters = {}
-    with open(f"{job_path}/config.txt", "r") as f:
+    with open(f"{model_path}/config.txt", "r") as f:
         lines = f.readlines()
         for line in lines:
             if line[0] == ";":
@@ -182,7 +206,7 @@ async def test_model(
                 if args[0] == "PARAM":
                     old_parameters[args[1]] = args[3].strip()
 
-    with open(f"{job_path}/config.txt", "r") as file:
+    with open(f"{model_path}/config.txt", "r") as file:
         filedata = file.read()
         # Replace the entire PARAM dataset_url line with the new dataset path,
         # the dataset path in the config is un
@@ -199,7 +223,7 @@ async def test_model(
         )
 
         # Save the updated config file
-        with open(f"{job_path}/config.txt", "w") as file:
+        with open(f"{model_path}/config.txt", "w") as file:
             file.write(filedata)
 
     # Create results directory
@@ -209,7 +233,7 @@ async def test_model(
 
     # paste config file to results directory also for future reference
     subprocess.run(
-        f"cp {job_path}/config.txt {settings.results_dir}/{result_id}/config.txt",
+        f"cp {model_path}/config.txt {settings.results_dir}/{result_id}/config.txt",
         shell=True,
         executable="/bin/bash",
         check=True,
@@ -254,7 +278,7 @@ async def test_model(
     # Run the script
 
     try:
-        install_output = run_install_requirements(job_path)
+        install_output = run_install_requirements(model_path)
         if install_output.returncode != 0:
             raise subprocess.CalledProcessError(
                 install_output.returncode,
@@ -263,15 +287,15 @@ async def test_model(
                 install_output.stderr,
             )
         # Run the script
-        trained_model = {pretrained_model} if pretrained_model is not None else f"{model_path}/{model.default_model}"
+        trained_model = pretrained_model if pretrained_model is not None else f"{model_path}/{model.default_model}"
 
         executor = ProcessPoolExecutor()
         executor.submit(
             run_test_model,
-            job_path=job_path,
-            script_path=f"{job_path}/{entry_point}.py",
+            model_path=model_path,
+            script_path=f"{model_path}/{entry_point}.py",
             result_id=result_id,
-            config_path=f"{job_path}/config.txt",
+            config_path=f"{model_path}/config.txt",
             trained_model=trained_model,
         )
 
@@ -302,24 +326,27 @@ async def test_model(
         result.status = "error"
         result.modified = datetime.datetime.now()
         await result.update()
+    finally:
+        # clear tmp repos
+        os.system(f"rm -rf {dataset_path}")
+        os.system(f"rm -rf {model_path}")
     return result
 
 
         
 
 def run_install_requirements(
-    job_path: str
+    model_path: str
 ) -> subprocess.CompletedProcess[bytes]:
     """Install requirements in a virtual environment using ProcessPoolExecutor"""
     # Activate the virtual environment
-    os.chdir(settings.jobs_dir)
-    venv_path = f"{job_path}/venv"
+    venv_path = f"{model_path}/venv"
     if not os.path.exists(venv_path):
         subprocess.run(f"python3 -m venv {venv_path}", shell=True, executable="/bin/bash", check=True)
     activate_venv = f"source {venv_path}/bin/activate"
 
     # Run install requirements
-    install_requirements = f"pip install -r {job_path}/requirements.txt"
+    install_requirements = f"pip install -r {model_path}/requirements.txt"
 
     # Combine the commands
     command = f"{activate_venv} && {install_requirements}"
@@ -328,15 +355,14 @@ def run_install_requirements(
     return subprocess.run(command, shell=True, executable="/bin/bash", check=True)
 
 def run_train_model(
-    job_path: str,
+    model_path: str,
     script_path: str,
     result_id: uuid.UUID,
     config_path: str,
 ) -> subprocess.CompletedProcess[bytes]:
     """Run a script in a virtual environment using ProcessPoolExecutor"""
     # Activate the virtual environment
-    os.chdir(settings.jobs_dir)
-    venv_path = f"{job_path}/venv"
+    venv_path = f"{model_path}/venv"
     activate_venv = f"source {venv_path}/bin/activate"
 
     # Prepare the command to run the script with arguments
@@ -349,7 +375,7 @@ def run_train_model(
     return subprocess.run(command, shell=True, executable="/bin/bash", check=True)
 
 def run_test_model(
-    job_path: str,
+    model_path: str,
     script_path: str,
     result_id: uuid.UUID,
     config_path: str,
@@ -357,8 +383,7 @@ def run_test_model(
 ) -> subprocess.CompletedProcess[bytes]:
     """Run a script in a virtual environment using ProcessPoolExecutor"""
     # Activate the virtual environment
-    os.chdir(settings.jobs_dir)
-    venv_path = f"{job_path}/venv"
+    venv_path = f"{model_path}/venv"
     activate_venv = f"source {venv_path}/bin/activate"
 
     # Prepare the command to run the script with arguments
