@@ -2,12 +2,16 @@
 from fastapi import APIRouter, HTTPException
 import ormar
 import ormar.exceptions
+from pydantic import BaseModel
 
 from server.db.models.iam import UserKeyPair
 from server.web.api.iam.utils import add_public_key, remove_public_key
 
 
 api_router = APIRouter()
+
+class UpdateKeyRequest(BaseModel):
+    public_key: str
 
 @api_router.post("/ssh_key")
 async def gen_key_pair(user_id: str, public_key: str) -> UserKeyPair:
