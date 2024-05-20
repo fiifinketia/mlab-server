@@ -126,6 +126,7 @@ async def submit_train_results(
     error: bool = False,
 ) -> None:
     """Submit training results for a job."""
+    result: Result
     if error:
         form = await request.form()
         result_id: uuid.UUID = uuid.UUID(form["result_id"]) # type: ignore
@@ -222,7 +223,15 @@ async def submit_train_results(
         result.modified = datetime.datetime.now()
         await result.update()
         # Return 200 OK
-        return None
+    
+    dataset = await Dataset.objects.get(id=result.dataset_id)
+    dataset_path = f"{settings.datasets_dir}/tmp/{dataset.path}" 
+
+    model = await Model.objects.get(id=result.job.model_id)
+    model_path = f"{settings.models_dir}/tmp/{model.path}"
+
+    os.system(f"rm -rf {dataset_path}")
+    os.system(f"rm -rf {model_path}")
     
 @api_router.post("/test", tags=["results", "jobs"], summary="Submit testing results for a job")
 async def submit_test_results(

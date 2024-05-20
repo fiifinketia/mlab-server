@@ -158,7 +158,6 @@ async def train_model(
         result.status = "error"
         result.modified = datetime.datetime.now()
         await result.update()
-    finally:
         # clear tmp repos
         os.system(f"rm -rf {dataset_path}")
         os.system(f"rm -rf {model_path}")
@@ -323,7 +322,6 @@ async def test_model(
         result.status = "error"
         result.modified = datetime.datetime.now()
         await result.update()
-    finally:
         # clear tmp repos
         os.system(f"rm -rf {dataset_path}")
         os.system(f"rm -rf {model_path}")
