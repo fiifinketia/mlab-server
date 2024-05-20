@@ -154,7 +154,7 @@ For running tests on your local machine.
 
 I prefer doing it with docker:
 ```
-docker run -p "5432:5432" -e "POSTGRES_PASSWORD=server" -e "POSTGRES_USER=server" -e "POSTGRES_DB=server" postgres:13.8-bullseye
+docker run -p "5432:5432" -e "POSTGRES_PASSWORD=mlab@123" -e "POSTGRES_USER=mlab" -e "POSTGRES_DB=mlab" postgres:13.8-bullseye
 ```
 
 

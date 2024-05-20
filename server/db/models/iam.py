@@ -18,6 +18,6 @@ class UserKeyPair(ormar.Model):
 
     id: str = ormar.String(primary_key=True, max_length=200)
     user_id: str = ormar.String(max_length=200)
-    public_key: str = ormar.String(max_length=200)
+    public_key: str = ormar.String(max_length=20000)
     created: datetime.datetime = ormar.DateTime(default=datetime.datetime.now)
     modified: datetime.datetime = ormar.DateTime(default=datetime.datetime.now)
