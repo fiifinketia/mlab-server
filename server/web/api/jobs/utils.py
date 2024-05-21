@@ -11,7 +11,7 @@ from server.db.models.jobs import Job
 from server.db.models.ml_models import Model
 from server.db.models.results import Result
 from server.settings import settings
-from git import Repo
+from git import GitCommandError, Repo
 
 async def train_model(
         dataset: Dataset,
@@ -26,11 +26,20 @@ async def train_model(
     model_repo = Repo(settings.models_dir + model.path)
 
     # clone dataset and model to a tmp directory and discard after use
-    dataset_path = settings.datasets_dir + "/tmp" + dataset.path
-    model_path = settings.models_dir + "/tmp" + model.path
+    dataset_path = settings.datasets_dir + "/tmp" + str(job.id) + "/" + dataset.path
+    model_path = settings.models_dir + "/tmp" + str(job.id) + "/" + model.path
     # clone specific jobb.repo_hash branch
-    Repo.clone_from(dataset_repo.working_dir, dataset_path, branch= job.dataset_branch if job.dataset_branch is not None else "master")
-    Repo.clone_from(model_repo.working_dir, model_path, branch= job.model_branch if job.model_branch is not None else "master")
+    try:
+        Repo.clone_from(dataset_repo.working_dir, dataset_path, branch= job.dataset_branch if job.dataset_branch is not None else "master")
+        Repo.clone_from(model_repo.working_dir, model_path, branch= job.model_branch if job.model_branch is not None else "master")
+    except GitCommandError as e:
+        os.system(f"rm -rf {dataset_path}")
+        os.system(f"rm -rf {model_path}")
+        try:
+            Repo.clone_from(dataset_repo.working_dir, dataset_path, branch= job.dataset_branch if job.dataset_branch is not None else "master")
+            Repo.clone_from(model_repo.working_dir, model_path, branch= job.model_branch if job.model_branch is not None else "master")
+        except Exception as e:
+            raise e
 
     entry_point = "__train__"
 
@@ -178,11 +187,20 @@ async def test_model(
 
 
     # clone dataset and model to a tmp directory and discard after use
-    dataset_path = settings.datasets_dir + "/tmp" + dataset.path
-    model_path = settings.models_dir + "/tmp" + model.path
+    dataset_path = settings.datasets_dir + "/tmp" + str(job.id) + "/" + dataset.path
+    model_path = settings.models_dir + "/tmp" + str(job.id) + "/" + model.path
 
-    Repo.clone_from(dataset_repo.working_dir, dataset_path, branch= job.dataset_branch if job.dataset_branch is not None else "master")
-    Repo.clone_from(model_repo.working_dir, model_path, branch= job.model_branch if job.model_branch is not None else "master")
+    try:
+        Repo.clone_from(dataset_repo.working_dir, dataset_path, branch= job.dataset_branch if job.dataset_branch is not None else "master")
+        Repo.clone_from(model_repo.working_dir, model_path, branch= job.model_branch if job.model_branch is not None else "master")
+    except GitCommandError as e:
+        os.system(f"rm -rf {dataset_path}")
+        os.system(f"rm -rf {model_path}")
+        try:
+            Repo.clone_from(dataset_repo.working_dir, dataset_path, branch= job.dataset_branch if job.dataset_branch is not None else "master")
+            Repo.clone_from(model_repo.working_dir, model_path, branch= job.model_branch if job.model_branch is not None else "master")
+        except Exception as e:
+            raise e
     entry_point = "__test__"
 
 
