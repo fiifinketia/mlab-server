@@ -26,8 +26,8 @@ async def train_model(
     model_repo = Repo(settings.models_dir + model.path)
 
     # clone dataset and model to a tmp directory and discard after use
-    dataset_path = settings.datasets_dir + "/tmp" + str(job.id) + "/" + dataset.path
-    model_path = settings.models_dir + "/tmp" + str(job.id) + "/" + model.path
+    dataset_path = settings.datasets_dir + "/tmp/" + str(job.id) + dataset.path
+    model_path = settings.models_dir + "/tmp/" + str(job.id) + model.path
     # clone specific jobb.repo_hash branch
     try:
         Repo.clone_from(dataset_repo.working_dir, dataset_path, branch= job.dataset_branch if job.dataset_branch is not None else "master")
@@ -187,8 +187,8 @@ async def test_model(
 
 
     # clone dataset and model to a tmp directory and discard after use
-    dataset_path = settings.datasets_dir + "/tmp" + str(job.id) + "/" + dataset.path
-    model_path = settings.models_dir + "/tmp" + str(job.id) + "/" + model.path
+    dataset_path = settings.datasets_dir + "/tmp/" + str(job.id) + dataset.path
+    model_path = settings.models_dir + "/tmp/" + str(job.id) + model.path
 
     try:
         Repo.clone_from(dataset_repo.working_dir, dataset_path, branch= job.dataset_branch if job.dataset_branch is not None else "master")
