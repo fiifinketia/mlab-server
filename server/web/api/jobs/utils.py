@@ -39,6 +39,8 @@ async def train_model(
             Repo.clone_from(dataset_repo.working_dir, dataset_path, branch= job.dataset_branch if job.dataset_branch is not None else "master")
             Repo.clone_from(model_repo.working_dir, model_path, branch= job.model_branch if job.model_branch is not None else "master")
         except Exception as e:
+            os.system(f"rm -rf {dataset_path}")
+            os.system(f"rm -rf {model_path}")
             raise e
 
     entry_point = "__train__"
@@ -200,6 +202,8 @@ async def test_model(
             Repo.clone_from(dataset_repo.working_dir, dataset_path, branch= job.dataset_branch if job.dataset_branch is not None else "master")
             Repo.clone_from(model_repo.working_dir, model_path, branch= job.model_branch if job.model_branch is not None else "master")
         except Exception as e:
+            os.system(f"rm -rf {dataset_path}")
+            os.system(f"rm -rf {model_path}")
             raise e
     entry_point = "__test__"
 
