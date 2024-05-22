@@ -1193,6 +1193,17 @@ files = [
 ]
 
 [[package]]
+name = "mlab-py"
+version = "0.3.0"
+description = "Python packages for mlab ecosystem"
+optional = false
+python-versions = "*"
+files = [
+    {file = "mlab.py-0.3.0-py3-none-any.whl", hash = "sha256:b5b5ece381af213f320e899eca37bfd2ab2095eaf3c3e449ac693e9b975cefaa"},
+    {file = "mlab_py-0.3.0.tar.gz", hash = "sha256:c1f4f6336ccb8dcda0e316bae92cc592c531406a90bd5667606f603010600a5f"},
+]
+
+[[package]]
 name = "multidict"
 version = "6.0.4"
 description = "multidict implementation"
@@ -2500,4 +2511,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "3ec76b876ffeeac574976b3be0bedc4c35da1a709d13e2df23f0d0aeabf6034e"
+content-hash = "e59fb3a3968130b27709fc0beb7e5568dfa08fad242f58ba2fd4cac99e9fbcbb"
