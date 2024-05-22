@@ -5,13 +5,14 @@ import subprocess
 from typing import Any
 import uuid
 from concurrent.futures import ProcessPoolExecutor
+from git import GitCommandError, Repo
+from pymlab import train as run_train_model, test as run_test_model
 
 from server.db.models.datasets import Dataset
 from server.db.models.jobs import Job
 from server.db.models.ml_models import Model
 from server.db.models.results import Result
 from server.settings import settings
-from git import GitCommandError, Repo
 
 async def train_model(
         dataset: Dataset,
@@ -43,7 +44,6 @@ async def train_model(
             os.system(f"rm -rf {model_path}")
             raise e
 
-    entry_point = "__train__"
 
     # Update the config file
     old_parameters = {}
@@ -142,12 +142,20 @@ async def train_model(
             )
         # Run the script
         executor = ProcessPoolExecutor()
+        # executor.submit(
+        #     run_train_model,
+        #     model_path=model_path,
+        #     script_path=f"{model_path}/{entry_point}.py",
+        #     result_id=result_id,
+        #     config_path=f"{model_path}/config.txt",
+        # )
+
+        # Using the run_train_model function, run the training script in the virtual environment
         executor.submit(
             run_train_model,
             model_path=model_path,
-            script_path=f"{model_path}/{entry_point}.py",
             result_id=result_id,
-            config_path=f"{model_path}/config.txt",
+            API_URL=settings.api_url,
         )
     except subprocess.CalledProcessError as e:
         error_message = ""
@@ -205,7 +213,6 @@ async def test_model(
             os.system(f"rm -rf {dataset_path}")
             os.system(f"rm -rf {model_path}")
             raise e
-    entry_point = "__test__"
 
 
     # Update the config file
@@ -311,10 +318,9 @@ async def test_model(
         executor.submit(
             run_test_model,
             model_path=model_path,
-            script_path=f"{model_path}/{entry_point}.py",
             result_id=result_id,
-            config_path=f"{model_path}/config.txt",
             trained_model=trained_model,
+            API_URL=settings.api_url,
         )
 
         # run_test_model(
@@ -371,43 +377,43 @@ def run_install_requirements(
     # Run the command
     return subprocess.run(command, shell=True, executable="/bin/bash", check=True)
 
-def run_train_model(
-    model_path: str,
-    script_path: str,
-    result_id: uuid.UUID,
-    config_path: str,
-) -> subprocess.CompletedProcess[bytes]:
-    """Run a script in a virtual environment using ProcessPoolExecutor"""
-    # Activate the virtual environment
-    venv_path = f"{model_path}/venv"
-    activate_venv = f"source {venv_path}/bin/activate"
+# def run_train_model(
+#     model_path: str,
+#     script_path: str,
+#     result_id: uuid.UUID,
+#     config_path: str,
+# ) -> subprocess.CompletedProcess[bytes]:
+#     """Run a script in a virtual environment using ProcessPoolExecutor"""
+#     # Activate the virtual environment
+#     venv_path = f"{model_path}/venv"
+#     activate_venv = f"source {venv_path}/bin/activate"
 
-    # Prepare the command to run the script with arguments
-    run_script = f"python {script_path} --config {config_path} --result_id {result_id}"
+#     # Prepare the command to run the script with arguments
+#     run_script = f"python {script_path} --config {config_path} --result_id {result_id}"
 
-    # Combine the commands
-    command = f"{activate_venv} && {run_script}"
+#     # Combine the commands
+#     command = f"{activate_venv} && {run_script}"
 
-    # Run the command
-    return subprocess.run(command, shell=True, executable="/bin/bash", check=True)
+#     # Run the command
+#     return subprocess.run(command, shell=True, executable="/bin/bash", check=True)
 
-def run_test_model(
-    model_path: str,
-    script_path: str,
-    result_id: uuid.UUID,
-    config_path: str,
-    trained_model: str,
-) -> subprocess.CompletedProcess[bytes]:
-    """Run a script in a virtual environment using ProcessPoolExecutor"""
-    # Activate the virtual environment
-    venv_path = f"{model_path}/venv"
-    activate_venv = f"source {venv_path}/bin/activate"
+# def run_test_model(
+#     model_path: str,
+#     script_path: str,
+#     result_id: uuid.UUID,
+#     config_path: str,
+#     trained_model: str,
+# ) -> subprocess.CompletedProcess[bytes]:
+#     """Run a script in a virtual environment using ProcessPoolExecutor"""
+#     # Activate the virtual environment
+#     venv_path = f"{model_path}/venv"
+#     activate_venv = f"source {venv_path}/bin/activate"
 
-    # Prepare the command to run the script with arguments
-    run_script = f"python {script_path} --config {config_path} --result_id {result_id} --trained_model {trained_model}"
+#     # Prepare the command to run the script with arguments
+#     run_script = f"python {script_path} --config {config_path} --result_id {result_id} --trained_model {trained_model}"
 
-    # Combine the commands
-    command = f"{activate_venv} && {run_script}"
+#     # Combine the commands
+#     command = f"{activate_venv} && {run_script}"
 
-    # Run the command
-    return subprocess.run(command, shell=True, executable="/bin/bash", check=True)
+#     # Run the command
+#     return subprocess.run(command, shell=True, executable="/bin/bash", check=True)

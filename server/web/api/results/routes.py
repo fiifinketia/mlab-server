@@ -225,10 +225,10 @@ async def submit_train_results(
         # Return 200 OK
     
     dataset = await Dataset.objects.get(id=result.dataset_id)
-    dataset_path = f"{settings.datasets_dir}/tmp/{dataset.path}" 
+    dataset_path = f"{settings.datasets_dir}/tmp/{str(result.job.id)}/{dataset.path}" 
 
     model = await Model.objects.get(id=result.job.model_id)
-    model_path = f"{settings.models_dir}/tmp/{model.path}"
+    model_path = f"{settings.models_dir}/tmp/{str(result.job.id)}/{model.path}"
 
     os.system(f"rm -rf {dataset_path}")
     os.system(f"rm -rf {model_path}")

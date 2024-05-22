@@ -11,7 +11,6 @@ from yarl import URL
 TEMP_DIR = Path(gettempdir())
 load_dotenv()
 
-
 class LogLevel(str, enum.Enum):  # noqa: WPS600
     """Possible log levels."""
 
@@ -37,6 +36,8 @@ class Settings(BaseSettings):
     workers_count: int = int(os.getenv("WORKERS_COUNT", "1"))
     # Enable uvicorn reloading
     reload: bool = False
+
+    api_url: str = os.getenv("API_URL", "http://localhost:8000")
 
     # Current environment
     environment: str = os.getenv("ENVIRONMENT", "dev")
