@@ -6,7 +6,7 @@ from typing import Any
 import uuid
 from concurrent.futures import ProcessPoolExecutor
 from git import GitCommandError, Repo
-from pymlab import train as run_train_model, test as run_test_model
+import pymlab as pm
 
 from server.db.models.datasets import Dataset
 from server.db.models.jobs import Job
@@ -153,7 +153,7 @@ async def train_model(
 
         # Using the run_train_model function, run the training script in the virtual environment
         executor.submit(
-            run_train_model,
+            pm.train,
             model_path=model_path,
             result_id=result_id,
             API_URL=settings.api_url,
@@ -317,7 +317,7 @@ async def test_model(
 
         executor = ProcessPoolExecutor()
         executor.submit(
-            run_test_model,
+            pm.test,
             model_path=model_path,
             result_id=result_id,
             trained_model=trained_model,
