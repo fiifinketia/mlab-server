@@ -151,11 +151,9 @@ async def train_model(
         # )
         print("Running train model")
 
-        # Using the run_train_model function, run the training script in the virtual environment
-        pm.load_pkg(p_type="native", name="train", to=model_path)
         executor.submit(
             pm.run_native_pkg,
-            name="train",
+            name="pymlab.train",
             at=model_path,
             result_id=result_id,
             api_url=settings.api_url,
@@ -318,10 +316,11 @@ async def test_model(
         trained_model = pretrained_model if pretrained_model is not None else f"{model_path}/{model.default_model}"
 
         executor = ProcessPoolExecutor()
-        pm.load_pkg(p_type="native", name="test", to=model_path)
+        print("Running test model")
+
         executor.submit(
             pm.run_native_pkg,
-            name="test",
+            name="pymlab.test",
             at=model_path,
             result_id=result_id,
             api_url=settings.api_url,
