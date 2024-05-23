@@ -39,6 +39,8 @@ class Settings(BaseSettings):
 
     api_url: str = os.getenv("API_URL", "http://localhost:8000")
 
+    x_api_key: str = os.getenv("X_API_KEY")
+
     # Current environment
     environment: str = os.getenv("ENVIRONMENT", "dev")
     log_level: LogLevel = LogLevel.INFO
