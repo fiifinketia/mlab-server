@@ -3,13 +3,16 @@ import os
 from typing import Any
 import uuid
 
+from git import Repo
 from pydantic import BaseModel
 
 from fastapi import APIRouter, HTTPException
+from git.cmd import Git
 
 from server.db.models.ml_models import Model
 from server.settings import settings
-from server.web.api.utils import create_git_project, make_git_path
+from server.web.api.models.dto import ModelResponse
+from server.web.api.utils import create_git_project, list_files_from_git, make_git_path
 
 api_router = APIRouter()
 
@@ -29,6 +32,32 @@ async def get_models() -> list[Model]:
     """Get all models."""
     return await Model.objects.all()
 
+# TODO: add branch name to request query
+@api_router.get("/{model_id}", tags=["models"], summary="Get a model")
+async def get_modle(model_id: str) -> ModelResponse:
+    """Get a model."""
+    model_uuid = uuid.UUID(model_id)
+    model = await Model.objects.get(id=model_uuid)
+    if model is None:
+        raise HTTPException(status_code=404, detail=f"Model {model_id} not found")
+    repo = Repo(f"{settings.models_dir}{model.path}")
+    try:
+        files = list_files_from_git(repo.head.commit.tree)
+    except:
+        files = []
+    return ModelResponse(
+        id=str(model.id),
+        name=model.name,
+        description=model.description,
+        path=model.path,
+        private=model.private,
+        owner_id=model.owner_id,
+        created_at=str(model.created),
+        updated_at=str(model.modified),
+        parameters=model.parameters,
+        files=files,
+    )
+
 
 @api_router.post("", tags=["models"], summary="Create a new model")
 async def create_model(
@@ -47,11 +76,7 @@ async def create_model(
 
     filepath = os.path.join(settings.models_dir, git_path)
 
-    try:
-        create_git_project(filepath)
-    except Exception as e:
-        os.remove(filepath)
-        raise HTTPException(status_code=500, detail=str(e)) from e
+    create_git_project(filepath)
 
     # Get full path to model
     # Create model

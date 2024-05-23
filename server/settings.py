@@ -11,7 +11,6 @@ from yarl import URL
 TEMP_DIR = Path(gettempdir())
 load_dotenv()
 
-
 class LogLevel(str, enum.Enum):  # noqa: WPS600
     """Possible log levels."""
 
@@ -31,12 +30,16 @@ class Settings(BaseSettings):
     with environment variables.
     """
 
-    host: str = os.getenv("HOST", "0.0.0.0")
+    host: str = os.getenv("HOST", "localhost")
     port: int = int(os.getenv("PORT", "8000"))
     # quantity of workers for uvicorn, get from env
     workers_count: int = int(os.getenv("WORKERS_COUNT", "1"))
     # Enable uvicorn reloading
     reload: bool = False
+
+    api_url: str = os.getenv("API_URL", "http://localhost:8000")
+
+    x_api_key: str = os.getenv("X_API_KEY")
 
     # Current environment
     environment: str = os.getenv("ENVIRONMENT", "dev")
@@ -126,6 +129,7 @@ class Settings(BaseSettings):
         results_dir = "/var/lib/docker/volumes/filez-results"
         # create the directory if it does not exist
         return results_dir
+    
 
     class Config:
         env_file = ".env"

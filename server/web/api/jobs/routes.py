@@ -6,6 +6,7 @@ import uuid
 import asyncio
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from git import Repo
 
 from server.db.models.datasets import Dataset
 from server.db.models.jobs import Job
@@ -63,15 +64,6 @@ async def create_job(
 ) -> None:
     """Create a new job."""
     job_id = uuid.uuid4()
-    try:
-        os.chdir(settings.jobs_dir)
-    except FileNotFoundError:
-        os.makedirs(settings.jobs_dir)
-        os.chdir(settings.jobs_dir)
-    # convert job.id to string
-    str_job_id = str(job_id)
-    os.mkdir(str_job_id)
-    os.chdir(str_job_id)
     # Find model and get path
     model = None
     try:
@@ -81,9 +73,8 @@ async def create_job(
             status_code=404,
             detail=f"Model {job_in.model_id} does not exist",
         )
-    model_path = os.path.join(settings.models_dir, model.path)
-    os.system(f"git clone {model_path} .")
-    path = f"/{str_job_id}"
+    model_path = settings.models_dir + model.path
+    model_repo = Repo(model_path)
     parameters = job_in.parameters
     if parameters is None:
         parameters = model.parameters
@@ -94,7 +85,9 @@ async def create_job(
         id=job_id,
         name=job_in.name,
         description=job_in.description,
-        path=path,
+        # git rev-parse --short HEAD
+        model_branch=model_repo.active_branch.name,
+        dataset_branch=None,
         # tags=job_in.tags,
         owner_id=job_in.owner_id,
         model_id=job_in.model_id,
@@ -113,11 +106,12 @@ async def run_train_model(
     # Else upload new dataset file for user
     dataset = await Dataset.objects.get(id=train_model_in.dataset_id)
     job = await Job.objects.get(id=train_model_in.job_id)
+    model = await Model.objects.get(id=job.model_id)
     # Check dataset type or structure
     # TODO: Check dataset type or structure
 
     loop = asyncio.get_event_loop()
-    loop.create_task(train_model(dataset=dataset, job=job, result_name=train_model_in.name, parameters=train_model_in.parameters))
+    loop.create_task(train_model(dataset=dataset, job=job, model=model, result_name=train_model_in.name, parameters=train_model_in.parameters))
     return "Training model"
 
 @api_router.post("/test", tags=["jobs", "models", "results"], summary="Run job to test model")
@@ -129,6 +123,8 @@ async def run_test_model(
     # Else upload new dataset file for user
     dataset = await Dataset.objects.get(id=test_model_in.dataset_id)
     job = await Job.objects.get(id=test_model_in.job_id)
+    model = await Model.objects.get(id=job.model_id)
+
     model_path = None
     if test_model_in.use_train_result_id is not None:
         train_result = await Result.objects.get(id=test_model_in.use_train_result_id)
@@ -138,8 +134,8 @@ async def run_test_model(
     # TODO: Check dataset type or structure
     if model_path is None:
         loop = asyncio.get_event_loop()
-        loop.create_task(test_model(dataset=dataset, job=job, result_name=test_model_in.name, parameters=test_model_in.parameters))
+        loop.create_task(test_model(dataset=dataset, job=job, model=model, result_name=test_model_in.name, parameters=test_model_in.parameters))
     else:
         loop = asyncio.get_event_loop()
-        loop.create_task(test_model(dataset=dataset, job=job, result_name=test_model_in.name, parameters=test_model_in.parameters, pretrained_model=model_path))
+        loop.create_task(test_model(dataset=dataset, job=job, model=model, result_name=test_model_in.name, parameters=test_model_in.parameters, pretrained_model=model_path))
     return "Testing model"
