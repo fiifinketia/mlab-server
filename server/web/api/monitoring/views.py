@@ -2,6 +2,7 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Header
 from git import Union
 
+from server.db.utils import create_database, drop_database
 from server.settings import settings
 from server.db.models.datasets import Dataset
 from server.db.models.jobs import Job
@@ -23,7 +24,5 @@ def health_check() -> None:
 async def safe_clear_data(x_api_key: Annotated[Union[str, None], Header()] = None):
     if x_api_key != settings.x_api_key:
         raise HTTPException(status_code=403, detail="Forbidden")
-    await Dataset.delete()
-    await Job.delete()
-    await Model.delete()
-    await Result.delete()
+    await drop_database()
+    await create_database()
