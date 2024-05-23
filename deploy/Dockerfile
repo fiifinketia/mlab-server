@@ -31,7 +31,6 @@ RUN apt-get update && apt-get install libgl1 python3-opencv libleptonica-dev tes
 COPY . /var/www/mlab/server
 
 # copy ssh key from host to container
-COPY .id_rsa /root/.ssh/id_rsa
 RUN poetry install --only main
 
 CMD ["/usr/local/bin/python", "-m", "server"]
