@@ -181,6 +181,8 @@ async def train_model(
         # clear tmp repos
         os.system(f"rm -rf {dataset_path}")
         os.system(f"rm -rf {model_path}")
+    except Exception as e:
+        print(e)
     return result
 
 async def test_model(
