@@ -24,5 +24,5 @@ def health_check() -> None:
 async def safe_clear_data(x_api_key: Annotated[Union[str, None], Header()] = None):
     if x_api_key != settings.x_api_key:
         raise HTTPException(status_code=403, detail="Forbidden")
-    await drop_database()
-    await create_database()
+    drop_database()
+    create_database()
