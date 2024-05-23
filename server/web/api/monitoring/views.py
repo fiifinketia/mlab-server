@@ -19,10 +19,4 @@ def health_check() -> None:
 
     It returns 200 if the project is healthy.
     """
-
-@router.get("/db.reset")
-async def safe_clear_data(x_api_key: Annotated[Union[str, None], Header()] = None):
-    if x_api_key != settings.x_api_key:
-        raise HTTPException(status_code=403, detail="Forbidden")
-    drop_database()
-    create_database()
+    return {"status": "healthy"}
