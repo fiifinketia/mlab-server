@@ -11,7 +11,7 @@ from server.db.models.datasets import Dataset
 from server.db.models.jobs import Job
 from server.db.models.ml_models import Model
 from server.db.models.results import Result
-import server.services.pymlab as pm 
+import pymlab as pm 
 from server.settings import settings
 
 async def train_model(
