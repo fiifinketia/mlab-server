@@ -149,6 +149,7 @@ async def train_model(
         #     result_id=result_id,
         #     config_path=f"{model_path}/config.txt",
         # )
+        print("Running train model")
 
         # Using the run_train_model function, run the training script in the virtual environment
         executor.submit(
