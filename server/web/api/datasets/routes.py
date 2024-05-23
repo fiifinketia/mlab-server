@@ -89,7 +89,6 @@ async def create_dataset(
                 private=private,
                 owner_id=owner_id,
             )
-            print("dataset created")
         except ValidationError as e:
             raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:

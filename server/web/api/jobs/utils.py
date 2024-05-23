@@ -149,14 +149,13 @@ async def train_model(
         #     result_id=result_id,
         #     config_path=f"{model_path}/config.txt",
         # )
-        print("Running train model")
 
         executor.submit(
             pm.run_native_pkg,
             name="pymlab.train",
             at=model_path,
             result_id=result_id,
-            api_url=settings.api_url,
+            api_url=f"{settings.api_url}/results/train",
         )
     except subprocess.CalledProcessError as e:
         error_message = ""
@@ -318,24 +317,15 @@ async def test_model(
         trained_model = pretrained_model if pretrained_model is not None else f"{model_path}/{model.default_model}"
 
         executor = ProcessPoolExecutor()
-        print("Running test model")
 
         executor.submit(
             pm.run_native_pkg,
             name="pymlab.test",
             at=model_path,
             result_id=result_id,
-            api_url=settings.api_url,
+            api_url=f"{settings.api_url}/results/test",
             pretrained_model=trained_model
         )
-
-        # run_test_model(
-        #     model_path=model_path,
-        #     script_path=f"{model_path}/{entry_point}.py",
-        #     result_id=result_id,
-        #     config_path=f"{job_path}/config.txt",
-        #     trained_model=trained_model,
-        # )
     except subprocess.CalledProcessError as e:
         error_message = ""
         if e.stderr is not None:

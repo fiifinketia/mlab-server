@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     with environment variables.
     """
 
-    host: str = os.getenv("HOST", "0.0.0.0")
+    host: str = os.getenv("HOST", "localhost")
     port: int = int(os.getenv("PORT", "8000"))
     # quantity of workers for uvicorn, get from env
     workers_count: int = int(os.getenv("WORKERS_COUNT", "1"))

@@ -17,7 +17,6 @@ def generate_key_pair(user_id: str) -> list[bytes]:
     if ssh_keygen.stdout is None:
         raise Exception("Error generating key pair")
     
-    print(ssh_keygen.stdout.readlines())
     
     return ssh_keygen.stdout.readlines()
 
