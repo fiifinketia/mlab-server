@@ -24,6 +24,9 @@ services:
     - type: bind
       source: ${RESULTS_DIR?:RESULTS_DIR not set}
       target: /var/lib/docker/volumes/filez-results
+    - type: bind
+      source: ${SSH_KEYS_PATH?:SSH_KEYS_PATH not set}
+      target: /root/.ssh
     - .:/var/www/mlab/server
     env_file:
     - .env
@@ -37,7 +40,7 @@ services:
       SERVER_HOST: ${HOST}
       SERVER_DB_HOST: ${DB_HOST}
       SERVER_DB_PORT: ${DB_PORT}
-      SERVER_DB_USER: ${DB_USER}  
+      SERVER_DB_USER: ${DB_USER}
       SERVER_DB_PASS: ${DB_PASS}
       SERVER_DB_BASE: ${DB_BASE}
       SERVER_REDIS_HOST: server-redis
@@ -64,7 +67,7 @@ services:
       interval: 1s
       timeout: 3s
       retries: 50
-  
+
   alembic:
     image: server:${SERVER_VERSION:-latest}
     restart: "no"
