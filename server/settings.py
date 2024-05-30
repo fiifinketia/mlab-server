@@ -37,6 +37,8 @@ class Settings(BaseSettings):
     # Enable uvicorn reloading
     reload: bool = False
 
+    ssh_keys_path: str = os.getenv("SSH_KEYS_PATH", "/root/.ssh")
+
     api_url: str = os.getenv("API_URL", "http://localhost:8000")
 
     x_api_key: str = os.getenv("X_API_KEY")
@@ -129,7 +131,7 @@ class Settings(BaseSettings):
         results_dir = "/var/lib/docker/volumes/filez-results"
         # create the directory if it does not exist
         return results_dir
-    
+
 
     class Config:
         env_file = ".env"
