@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     # Enable uvicorn reloading
     reload: bool = False
 
-    ssh_keys_path: str = os.getenv("SSH_KEYS_PATH", "/root/.ssh")
+    ssh_keys_path: str = "/root/.ssh"
 
     api_url: str = os.getenv("API_URL", "http://localhost:8000")
 
