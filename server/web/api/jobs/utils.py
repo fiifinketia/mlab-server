@@ -5,14 +5,14 @@ import subprocess
 from typing import Any
 import uuid
 from concurrent.futures import ProcessPoolExecutor
-from git import GitCommandError, Repo
+import pymlab as pm
 
+from server.settings import settings
 from server.db.models.datasets import Dataset
 from server.db.models.jobs import Job
 from server.db.models.ml_models import Model
 from server.db.models.results import Result
-import pymlab as pm 
-from server.settings import settings
+from server.services.git import GitService, RepoNotFoundError
 
 async def train_model(
         dataset: Dataset,
@@ -23,26 +23,26 @@ async def train_model(
         # layers: list[Layer] = []
 ) -> Result:
     """Train model with a provided dataset and store results"""
-    dataset_repo = Repo(settings.datasets_dir + dataset.path)
-    model_repo = Repo(settings.models_dir + model.path)
+    git = GitService()
 
     # clone dataset and model to a tmp directory and discard after use
-    dataset_path = settings.datasets_dir + "/tmp/" + str(job.id) + dataset.path
-    model_path = settings.models_dir + "/tmp/" + str(job.id) + model.path
+    dataset_path = settings.results_dir + "/tmp/" + str(job.id) + dataset.path
+    model_path = settings.results_dir + "/tmp/" + str(job.id) + model.path
     # clone specific jobb.repo_hash branch
     try:
-        Repo.clone_from(dataset_repo.working_dir, dataset_path, branch= job.dataset_branch if job.dataset_branch is not None else "master")
-        Repo.clone_from(model_repo.working_dir, model_path, branch= job.model_branch if job.model_branch is not None else "master")
-    except GitCommandError as e:
-        os.system(f"rm -rf {dataset_path}")
-        os.system(f"rm -rf {model_path}")
-        try:
-            Repo.clone_from(dataset_repo.working_dir, dataset_path, branch= job.dataset_branch if job.dataset_branch is not None else "master")
-            Repo.clone_from(model_repo.working_dir, model_path, branch= job.model_branch if job.model_branch is not None else "master")
-        except Exception as e:
+        if os.path.exists(dataset_path):
             os.system(f"rm -rf {dataset_path}")
             os.system(f"rm -rf {model_path}")
-            raise e
+        git.clone_repo(repo_name_with_namspace=dataset.path, to=dataset_path, branch= job.dataset_branch)
+        git.clone_repo(repo_name_with_namspace=model.path, to=model_path, branch= job.model_branch)
+    except RepoNotFoundError as e:
+        os.system(f"rm -rf {dataset_path}")
+        os.system(f"rm -rf {model_path}")
+        raise e
+    except Exception as e:
+        os.system(f"rm -rf {dataset_path}")
+        os.system(f"rm -rf {model_path}")
+        raise e
 
 
     # Update the config file
@@ -114,7 +114,7 @@ async def train_model(
             pass
         elif parameters.get(key) is None:
             parameters[key] = value
-    
+
     parameters["dataset_url"] = "dataset.csv"
 
     result = await Result.objects.create(
@@ -193,29 +193,26 @@ async def test_model(
     pretrained_model: str | None = None,
 ) -> Result:
     """Test model with a provided dataset and store results"""
-    # Get the dataset path
-    dataset_repo = Repo(settings.datasets_dir + dataset.path)
-    model_repo = Repo(settings.models_dir + model.path)
-
+    git = GitService()
 
     # clone dataset and model to a tmp directory and discard after use
-    dataset_path = settings.datasets_dir + "/tmp/" + str(job.id) + dataset.path
-    model_path = settings.models_dir + "/tmp/" + str(job.id) + model.path
-
+    dataset_path = settings.results_dir + "/tmp/" + str(job.id) + dataset.path
+    model_path = settings.results_dir + "/tmp/" + str(job.id) + model.path
+    # clone specific jobb.repo_hash branch
     try:
-        Repo.clone_from(dataset_repo.working_dir, dataset_path, branch= job.dataset_branch if job.dataset_branch is not None else "master")
-        Repo.clone_from(model_repo.working_dir, model_path, branch= job.model_branch if job.model_branch is not None else "master")
-    except GitCommandError as e:
-        os.system(f"rm -rf {dataset_path}")
-        os.system(f"rm -rf {model_path}")
-        try:
-            Repo.clone_from(dataset_repo.working_dir, dataset_path, branch= job.dataset_branch if job.dataset_branch is not None else "master")
-            Repo.clone_from(model_repo.working_dir, model_path, branch= job.model_branch if job.model_branch is not None else "master")
-        except Exception as e:
+        if os.path.exists(dataset_path):
             os.system(f"rm -rf {dataset_path}")
             os.system(f"rm -rf {model_path}")
-            raise e
-
+        git.clone_repo(repo_name_with_namspace=dataset.path, to=dataset_path, branch= job.dataset_branch)
+        git.clone_repo(repo_name_with_namspace=model.path, to=model_path, branch= job.model_branch)
+    except RepoNotFoundError as e:
+        os.system(f"rm -rf {dataset_path}")
+        os.system(f"rm -rf {model_path}")
+        raise e
+    except Exception as e:
+        os.system(f"rm -rf {dataset_path}")
+        os.system(f"rm -rf {model_path}")
+        raise e
 
     # Update the config file
 
@@ -277,7 +274,7 @@ async def test_model(
         # Save the updated config file
         with open(f"{settings.results_dir}/{result_id}/config.txt", "w") as file:
             file.write(filedata)
-    
+
     files = []
 
     files.append("config.txt")
@@ -287,7 +284,7 @@ async def test_model(
             pass
         elif parameters.get(key) is None:
             parameters[key] = value
-    
+
     parameters["dataset_url"] = "dataset.csv"
 
     result = await Result.objects.create(

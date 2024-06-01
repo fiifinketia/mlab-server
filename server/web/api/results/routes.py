@@ -49,10 +49,7 @@ async def get_results(user_id: str) -> list[dict[str, Any]]:
         result_list.append(result_new)
     return result_list
 
-# @api_router.get("/{user_id}/{job_id}", tags=["results"], summary="Get all results for a job")
-# async def get_job_results(user_id: str, job_id: str) -> list[Result]:
-#     """Get all results for a job."""
-#     return await Result.objects.select_related("job").all(owner_id=user_id, id=job_id)
+
 class ResultResponse(BaseModel):
     """Result response"""
 
@@ -223,16 +220,16 @@ async def submit_train_results(
         result.modified = datetime.datetime.now()
         await result.update()
         # Return 200 OK
-    
+
     dataset = await Dataset.objects.get(id=result.dataset_id)
-    dataset_path = f"{settings.datasets_dir}/tmp/{str(result.job.id)}/{dataset.path}" 
+    dataset_path = f"{settings.results_dir}/tmp/{str(result.job.id)}/{dataset.path}"
 
     model = await Model.objects.get(id=result.job.model_id)
-    model_path = f"{settings.models_dir}/tmp/{str(result.job.id)}/{model.path}"
+    model_path = f"{settings.results_dir}/tmp/{str(result.job.id)}/{model.path}"
 
     os.system(f"rm -rf {dataset_path}")
     os.system(f"rm -rf {model_path}")
-    
+
 @api_router.post("/test", tags=["results", "jobs"], summary="Submit testing results for a job")
 async def submit_test_results(
     request: Request,
@@ -293,7 +290,7 @@ async def submit_test_results(
                 status_code=404,
                 detail=f"Result {result_id} not found",
             )
-        
+
         new_files: list[str] = result.files
 
         # Save plot to results directory
@@ -320,7 +317,15 @@ async def submit_test_results(
         result.modified = datetime.datetime.now()
         await result.update()
         # Return 200 OK
-        return None
+
+    dataset = await Dataset.objects.get(id=result.dataset_id)
+    dataset_path = f"{settings.results_dir}/tmp/{str(result.job.id)}/{dataset.path}"
+
+    model = await Model.objects.get(id=result.job.model_id)
+    model_path = f"{settings.results_dir}/tmp/{str(result.job.id)}/{model.path}"
+
+    os.system(f"rm -rf {dataset_path}")
+    os.system(f"rm -rf {model_path}")
 
 
 @api_router.get("/download/{result_id}", tags=["results"], summary="Download a result")

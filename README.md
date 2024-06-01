@@ -184,3 +184,10 @@ docker-compose -f deploy/docker-compose.yml --project-directory . run --rm alemb
 docker-compose -f deploy/docker-compose.yml --project-directory . run --rm alembic history
 
 poetry source show
+
+# ssh-keygen -t rsa -b 4096 -C "", if you don't have ssh key
+# cat ~/.ssh/id_rsa.pub | pbcopy
+# paste the key in the mlab ssh keys configuration
+# eval $(ssh-agent)
+# ssh-add
+# git clone disal@appatechlabb.com:6000/path/to/project.git

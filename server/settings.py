@@ -1,3 +1,4 @@
+"""Settings for the application."""
 import enum
 import os
 from pathlib import Path
@@ -41,7 +42,7 @@ class Settings(BaseSettings):
 
     api_url: str = os.getenv("API_URL", "http://localhost:8000")
 
-    x_api_key: str = os.getenv("X_API_KEY")
+    x_api_key: str = os.getenv("X_API_KEY", "")
 
     # Current environment
     environment: str = os.getenv("ENVIRONMENT", "dev")
@@ -60,6 +61,16 @@ class Settings(BaseSettings):
     redis_user: Optional[str] = None
     redis_pass: Optional[str] = None
     redis_base: Optional[int] = None
+
+    # Variables for the GitHub API
+    gitlab_url: str = os.getenv("GITLAB_URL", "")
+    gitlab_token: str = os.getenv("GITLAB_TOKEN", "")
+    # git_user_path: str = "/var/lib/git"
+
+    # datasets_dir: str = git_user_path + "/datasets"
+    # models_dir: str = git_user_path + "/models"
+
+    # sudo_password: str = os.getenv("SUDO_PASSWORD", "")
 
     @property
     def db_url(self) -> URL:
@@ -97,24 +108,6 @@ class Settings(BaseSettings):
         )
 
     @property
-    def models_dir(self) -> str:
-        """
-        Return path to models directory."""
-        # create a path to the models directory
-        models_dir = "/var/lib/docker/volumes/filez-models"
-        # create the directory if it does not exist
-        return models_dir
-
-    @property
-    def datasets_dir(self) -> str:
-        """
-        Return path to datasets directory."""
-        # create a path to the datasets directory
-        datasets_dir = "/var/lib/docker/volumes/filez-datasets"
-        # create the directory if it does not exist
-        return datasets_dir
-
-    @property
     def jobs_dir(self) -> str:
         """
         Return path to jobs directory."""
@@ -134,6 +127,7 @@ class Settings(BaseSettings):
 
 
     class Config:
+        """Configuration for settings."""
         env_file = ".env"
         env_prefix = "SERVER_"
         env_file_encoding = "utf-8"

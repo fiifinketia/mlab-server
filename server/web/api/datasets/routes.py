@@ -1,15 +1,12 @@
 """Routes for jobs API."""
-import os
 import uuid
 from fastapi import APIRouter, HTTPException, Form
-from git import Repo
 from pydantic import ValidationError
 # from server.db.models.jobs import Job
 # from server.db.models.ml_models import Model
 from server.db.models.datasets import Dataset
 from server.web.api.datasets.dto import DatasetIn, DatasetResponse
-from server.web.api.utils import create_git_project, list_files_from_git, make_git_path
-from server.settings import settings
+from server.services.git import GitService, RepoNotFoundError, RepoTypes
 
 api_router = APIRouter()
 
@@ -17,6 +14,7 @@ CHUNK_SIZE = 1024 * 1024  # adjust the chunk size as desired
 
 
 class DatasetInForm(DatasetIn):
+    """Dataset form model."""
     private: bool = Form(...)
     name: str = Form(...)
     description: str = Form(...)
@@ -24,6 +22,7 @@ class DatasetInForm(DatasetIn):
 
 @api_router.get("", tags=["datasets"], summary="Get All datasets user has access to")
 async def fetch_datasets(user_id: str = "") -> list[Dataset]:
+    """Get all datasets."""
     all_datasets = await Dataset.objects.all(private=False)
     user_datasets = None
     if user_id is not None:
@@ -38,12 +37,12 @@ async def fetch_dataset(dataset_id: str) -> DatasetResponse:
     dataset = await Dataset.objects.get(id=dataset_uuid)
     if dataset is None:
         raise HTTPException(status_code=404, detail=f"Dataset {dataset_id} not found")
-    repo = Repo(f"{settings.datasets_dir}{dataset.path}")
     try:
-        files = list_files_from_git(repo.head.commit.tree)
-    except:
+        git = GitService()
+        files = git.list_files(dataset.path)
+    except RepoNotFoundError:
         files = []
-    
+
     return DatasetResponse(
         id=str(dataset.id),
         name=dataset.name,
@@ -58,36 +57,29 @@ async def fetch_dataset(dataset_id: str) -> DatasetResponse:
 
 @api_router.post("", tags=["datasets"], summary="Upload a new dataset")
 async def create_dataset(
-        # file: UploadFile = File(...), 
-        name: str = Form(...),
-        description: str = Form(...),
-        private: bool = Form(...),
-        owner_id: str = Form(...),
+        dataset_in: DatasetInForm,
     ) -> Dataset:
     """Upload a new dataset."""
     try:
 
         dataset_id = uuid.uuid4()
 
-        try:
-            os.chdir(settings.datasets_dir)
-        except FileNotFoundError:
-            os.makedirs(settings.datasets_dir)
-            os.chdir(settings.datasets_dir)
-        git_path = make_git_path(name)
+        git = GitService()
+        git_path = git.create_repo(
+            repo_name=dataset_in.name,
+            repo_type=RepoTypes.DATASET,
+            username=dataset_in.owner_id,
+            is_private=dataset_in.private,
+        )
 
-        filepath = os.path.join(settings.datasets_dir, git_path)
-        
-        create_git_project(filepath)
-        
-        try:    
+        try:
             dataset = await Dataset.objects.create(
                 id=dataset_id,
-                name=name,
-                description=description,
-                path="/" + git_path,
-                private=private,
-                owner_id=owner_id,
+                name=dataset_in.name,
+                description=dataset_in.description,
+                path=git_path,
+                private=dataset_in.private,
+                owner_id=dataset_in.owner_id,
             )
         except ValidationError as e:
             raise HTTPException(status_code=400, detail=str(e)) from e

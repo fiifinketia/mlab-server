@@ -6,12 +6,12 @@ import uuid
 import asyncio
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from git import Repo
 
 from server.db.models.datasets import Dataset
 from server.db.models.jobs import Job
 from server.db.models.ml_models import Model
 from server.db.models.results import Result
+from server.services.git.main import GitService
 from server.settings import settings
 from server.web.api.jobs.utils import train_model, test_model
 
@@ -26,6 +26,7 @@ class JobIn(BaseModel):
     owner_id: str
     model_id: uuid.UUID
     parameters: Optional[dict[str, Any]]
+    branch: Optional[str]
     # tags: list = []
 
 
@@ -73,8 +74,6 @@ async def create_job(
             status_code=404,
             detail=f"Model {job_in.model_id} does not exist",
         )
-    model_path = settings.models_dir + model.path
-    model_repo = Repo(model_path)
     parameters = job_in.parameters
     if parameters is None:
         parameters = model.parameters
@@ -86,7 +85,7 @@ async def create_job(
         name=job_in.name,
         description=job_in.description,
         # git rev-parse --short HEAD
-        model_branch=model_repo.active_branch.name,
+        model_branch=job_in.branch,
         dataset_branch=None,
         # tags=job_in.tags,
         owner_id=job_in.owner_id,

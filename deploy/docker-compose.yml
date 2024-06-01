@@ -12,21 +12,18 @@ services:
     user: root
     volumes:
       # Mount a volume for file uploads.
-    - type: bind
-      source: ${MODELS_DIR?:MODELS_DIR not set}
-      target: /var/lib/docker/volumes/filez-models
-    - type: bind
-      source: ${DATASETS_DIR?:DATASETS_DIR not set}
-      target: /var/lib/docker/volumes/filez-datasets
+    # - type: bind
+    #   source: ${MODELS_DIR?:MODELS_DIR not set}
+    #   target: /var/lib/git/models
+    # - type: bind
+    #   source: ${DATASETS_DIR?:DATASETS_DIR not set}
+    #   target: /var/lib/git/datasets
     - type: bind
       source: ${JOBS_DIR?:JOBS_DIR not set}
       target: /var/lib/docker/volumes/filez-jobs
     - type: bind
       source: ${RESULTS_DIR?:RESULTS_DIR not set}
       target: /var/lib/docker/volumes/filez-results
-    - type: bind
-      source: ${SSH_KEYS_PATH?:SSH_KEYS_PATH not set}
-      target: /root/.ssh
     - .:/var/www/mlab/server
     env_file:
     - .env
@@ -83,8 +80,8 @@ services:
 
 
 volumes:
-  filez-datasets:
-    name: filez-datasets
+  # filez-datasets:
+  #   name: filez-datasets
   filez-jobs:
     name: filez-jobs
   filez-results:
