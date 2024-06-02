@@ -20,6 +20,8 @@ async def train_model(
         model: Model,
         result_name: str,
         parameters: dict[str, Any] = {},
+        dataset_branch: str | None = None,
+        model_branch: str | None = None,
         # layers: list[Layer] = []
 ) -> Result:
     """Train model with a provided dataset and store results"""
@@ -33,8 +35,8 @@ async def train_model(
         if os.path.exists(dataset_path):
             os.system(f"rm -rf {dataset_path}")
             os.system(f"rm -rf {model_path}")
-        git.clone_repo(repo_name_with_namspace=dataset.path, to=dataset_path, branch= job.dataset_branch)
-        git.clone_repo(repo_name_with_namspace=model.path, to=model_path, branch= job.model_branch)
+        git.clone_repo(repo_name_with_namspace=dataset.path, to=dataset_path, branch= dataset_branch)
+        git.clone_repo(repo_name_with_namspace=model.path, to=model_path, branch= model_branch if model_branch is not None else job.model_branch)
     except RepoNotFoundError as e:
         os.system(f"rm -rf {dataset_path}")
         os.system(f"rm -rf {model_path}")
@@ -191,6 +193,8 @@ async def test_model(
     result_name: str,
     parameters: dict[str, Any] = {},
     pretrained_model: str | None = None,
+    dataset_branch: str | None = None,
+    model_branch: str | None = None,
 ) -> Result:
     """Test model with a provided dataset and store results"""
     git = GitService()
@@ -203,8 +207,8 @@ async def test_model(
         if os.path.exists(dataset_path):
             os.system(f"rm -rf {dataset_path}")
             os.system(f"rm -rf {model_path}")
-        git.clone_repo(repo_name_with_namspace=dataset.path, to=dataset_path, branch= job.dataset_branch)
-        git.clone_repo(repo_name_with_namspace=model.path, to=model_path, branch= job.model_branch)
+        git.clone_repo(repo_name_with_namspace=dataset.path, to=dataset_path, branch= dataset_branch)
+        git.clone_repo(repo_name_with_namspace=model.path, to=model_path, branch= model_branch if model_branch is not None else job.model_branch)
     except RepoNotFoundError as e:
         os.system(f"rm -rf {dataset_path}")
         os.system(f"rm -rf {model_path}")

@@ -86,7 +86,6 @@ async def create_job(
         description=job_in.description,
         # git rev-parse --short HEAD
         model_branch=job_in.branch,
-        dataset_branch=None,
         # tags=job_in.tags,
         owner_id=job_in.owner_id,
         model_id=job_in.model_id,

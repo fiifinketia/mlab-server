@@ -17,7 +17,7 @@ class Dataset(ormar.Model):
     id: uuid.UUID = ormar.UUID(primary_key=True, default=uuid.uuid4)
     name: str = ormar.String(max_length=200)
     description: str = ormar.String(max_length=200, nullable=True)
-    path: str = ormar.String(max_length=200)
+    gitlab_name: str = ormar.String(max_length=200)
     private: bool = ormar.Boolean(default=False)
     owner_id: str = ormar.String(max_length=200)
     created: datetime.datetime = ormar.DateTime(default=datetime.datetime.now)

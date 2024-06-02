@@ -11,7 +11,6 @@ from enum import Enum
 # Enum of Result Type
 class ResultType(Enum):
     """Result type enum"""
-
     train = "train"
     test = "test"
 
