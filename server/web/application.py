@@ -1,9 +1,13 @@
 from importlib import metadata
+from typing import Any
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import UJSONResponse
+from fastapi.security import HTTPBearer
 
+from server.services.auth_bearer import JWTPayload, verify_jwt
+from server.settings import settings
 from server.web.api.router import api_router
 from server.web.lifetime import register_shutdown_event, register_startup_event
 
@@ -35,6 +39,37 @@ def get_app() -> FastAPI:
         allow_headers=["*"],
         expose_headers=["*"],
     )
+
+    @app.middleware("http")
+    async def check_auth(request: Request, call_next: Any) -> Any:
+        if request.url.path.startswith("/api/docs") or request.url.path.startswith("/api/health"):
+            return await call_next(request)
+        credentials = await HTTPBearer().__call__(request)
+        if credentials:
+            if not credentials.scheme == "Bearer":
+                raise HTTPException(status_code=403, detail="Invalid authentication scheme.")
+            try:
+                payload = verify_jwt(credentials.credentials)
+                request.state.jwt_user = payload
+            except:
+                raise HTTPException(status_code=403, detail="Invalid authorization code.")
+            return await call_next(request)
+        # check if headers has x-api-key
+        if request.headers.get("x-api-key") == settings.x_api_key:
+            # add user_id to request
+            admin_jwt = JWTPayload(
+                sub="admin",
+                exp=0,
+                aud="admin",
+                iss="admin",
+                iat=0,
+                username="admin",
+                email="admin",
+                name="admin",
+            )
+            request.state.jwt_user = admin_jwt
+            return await call_next(request)
+        raise HTTPException(status_code=403, detail="Invalid authorization code.")
 
     # Adds startup and shutdown events.
     register_startup_event(app)

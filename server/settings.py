@@ -67,6 +67,10 @@ class Settings(BaseSettings):
     gitlab_token: str = os.getenv("GITLAB_TOKEN", "")
     # git_user_path: str = "/var/lib/git"
 
+    # JWT
+    jwt_secret: str = os.getenv("JWT_SECRET", "")
+    jwt_algorithm: str = os.getenv("JWT_ALGORITHM", "HS256")
+
     # datasets_dir: str = git_user_path + "/datasets"
     # models_dir: str = git_user_path + "/models"
 
