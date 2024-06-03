@@ -1,4 +1,4 @@
-from datetime import time
+from datetime import datetime
 from typing import Any
 from fastapi import HTTPException, status
 import jwt
@@ -41,7 +41,8 @@ def decode_jwt(token: str) -> Any:
     """Decode the JWT token."""
     try:
         decoded_token = jwt.decode(jwt=token, key=settings.jwt_secret, algorithms=[settings.jwt_algorithm], audience=settings.jwt_audience, issuer=settings.jwt_issuer, options={"require": ["exp", "sub", "aud", "iss"]})
-        return decoded_token if decoded_token["exp"] >= time() else None
+        exp = datetime.fromtimestamp(decoded_token["exp"]).timestamp()
+        return decoded_token if exp >= datetime.now().timestamp() else None
     except(jwt.DecodeError, ValidationError) as e:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
