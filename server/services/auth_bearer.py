@@ -25,7 +25,7 @@ class JWTPayload(BaseModel):
 
 
 
-def verify_jwt(jwtoken: str) -> JWTPayload:
+def verify_jwt(jwtoken: str) -> dict[str, Any]:
     """Verify the JWT token."""
     payload: JWTPayload = decode_jwt(jwtoken)
 
