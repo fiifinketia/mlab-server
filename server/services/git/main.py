@@ -28,7 +28,7 @@ class GitService:
         """Get a project."""
         return self.gl.projects.get(repo_name_with_namespace)
 
-    def create_repo(self, repo_name: str, repo_type: str, username: str, is_private: bool, group_id: str | None = None) -> str:
+    def create_repo(self, repo_name: str, repo_type: str, username: str, is_private: bool, group_id: str | None = None) -> tuple[str, str]:
         """Create a repository."""
         repo_name = self.format_repo_name(repo_name=repo_name, repo_type=repo_type)
         namespace_id = group_id if group_id is not None else username
@@ -36,14 +36,14 @@ class GitService:
             self.gl.auth()
 
             user = self.gl.users.get(username)
-            user.projects.create(
+            project = user.projects.create(
                 {
                     "name": repo_name,
                     "visibility": "private" if is_private else "internal",
                     "namespace_id": namespace_id,
                 }
             )
-            return repo_name
+            return (repo_name, project.ssh_url_to_repo)
         else:
             raise RepoNotFoundError(f"Repository '{repo_name}' already exists.")
 
@@ -58,6 +58,36 @@ class GitService:
             return repo_git_url
         else:
             raise RepoNotFoundError(f"Repository '{repo_name_with_namspace}' does not exist.")
+
+    def delete_repo(self, repo_name_with_namespace: str) -> None:
+        """Delete a repository."""
+        if self.check_exists(repo_name=repo_name_with_namespace):
+            project = self.gl.projects.get(repo_name_with_namespace)
+            project.delete()
+        else:
+            raise RepoNotFoundError(f"Repository '{repo_name_with_namespace}' does not exist.")
+
+    def add_ssh_key(self, key: str, title: str, username: str) -> None:
+        """Add an SSH key."""
+        user = self.gl.users.get(username)
+        if user is not None:
+            user.keys.create({"title": title, "key": key})
+        else:
+            raise Exception(f"User '{username}' not found.")
+
+    def list_ssh_keys(self, username: str) -> Any:
+        """List SSH keys."""
+        user = self.gl.users.get(username)
+        return user.keys.list()
+
+    def delete_ssh_key(self, key: str, username: str) -> None:
+        """Delete an SSH key."""
+        user = self.gl.users.get(username)
+        if user is not None:
+            key_id = user.keys.list(search=key)[0].id
+            user.keys.delete(key_id)
+        else:
+            raise Exception(f"User '{username}' not found.")
 
     # def use_sudo_run(self, command: str) -> None:
     #     """Run a command with sudo."""

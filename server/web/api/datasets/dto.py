@@ -19,7 +19,8 @@ class DatasetResponse(BaseModel):
     id: str
     name: str
     description: str
-    path: str
+    git_name: str
+    clone_url: str
     private: bool
     owner_id: str
     created_at: str
