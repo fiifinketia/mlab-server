@@ -22,7 +22,7 @@ class DatasetInForm(DatasetIn):
 @api_router.get("", tags=["datasets"], summary="Get All datasets user has access to")
 async def fetch_datasets(req: Request) -> list[Dataset]:
     """Get all datasets."""
-    user_id = req.state.jwt_user.username
+    user_id = req.state.user_id
     all_datasets = await Dataset.objects.all(private=False)
     user_datasets = None
     if user_id is not None:
@@ -33,7 +33,7 @@ async def fetch_datasets(req: Request) -> list[Dataset]:
 @api_router.get("/{dataset_id}", tags=["datasets"], summary="Get a dataset")
 async def fetch_dataset(dataset_id: str, req: Request) -> DatasetResponse:
     """Get a dataset."""
-    user_id = req.state.jwt_user.username
+    user_id = req.state.user_id
     dataset_uuid = uuid.UUID(dataset_id)
     # find dataset by id where dataset is public or user is owner
     dataset = await Dataset.objects.get(id=dataset_uuid, private=False)
@@ -66,7 +66,7 @@ async def create_dataset(
         req: Request
     ) -> Dataset:
     """Upload a new dataset."""
-    user_id = req.state.jwt_user.username
+    user_id = req.state.user_id
     try:
 
         dataset_id = uuid.uuid4()
@@ -99,7 +99,7 @@ async def create_dataset(
 @api_router.delete("/{dataset_id}", tags=["datasets"], summary="Delete a dataset")
 async def delete_dataset(dataset_id: str, req: Request) -> None:
     """Delete a dataset."""
-    user_id = req.state.jwt_user.username
+    user_id = req.state.user_id
     dataset_uuid = uuid.UUID(dataset_id)
     dataset = await Dataset.objects.get(id=dataset_uuid)
     if dataset is None:

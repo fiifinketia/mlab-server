@@ -17,7 +17,7 @@ class UpdateKeyRequest(BaseModel):
 @api_router.post("/ssh_key")
 async def gen_key_pair(req: Request, rbody: UpdateKeyRequest) -> UserKeyPair:
     """Generate a new key pair for a user."""
-    user_id = req.state.jwt_user.username
+    user_id = req.state.user_id
     git = GitService()
     # try:
     #     old_key_pair = await UserKeyPair.objects.get(user_id=user_id)

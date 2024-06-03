@@ -27,7 +27,8 @@ class CreateModelRequest(BaseModel):
 @api_router.get("", tags=["models"], summary="Get all models")
 async def get_models(req: Request) -> list[Model]:
     """Get all models."""
-    user_id = req.state.jwt_user.username
+    print(req.state.jwt_user)
+    user_id = req.state.user_id
     all_models = await Model.objects.all(private=False)
     user_models = None
     if user_id is not None:
@@ -39,7 +40,7 @@ async def get_models(req: Request) -> list[Model]:
 @api_router.get("/{model_id}", tags=["models"], summary="Get a model")
 async def get_modle(model_id: str, req: Request) -> ModelResponse:
     """Get a model."""
-    user_id = req.state.jwt_user.username
+    user_id = req.state.user_id
     model_uuid = uuid.UUID(model_id)
     model = await Model.objects.get(id=model_uuid, private=False)
     if model is None and user_id is not None:
@@ -75,7 +76,7 @@ async def create_model(
 ) -> None:
     """Create a new model."""
     model_id = uuid.uuid4()
-    user_id = req.state.jwt_user.username
+    user_id = req.state.user_id
 
     git = GitService()
     git_path, clone_url = git.create_repo(
@@ -101,7 +102,7 @@ async def create_model(
 @api_router.delete("/{model_id}", tags=["models"], summary="Delete a model")
 async def delete_model(model_id: str, req: Request) -> None:
     """Delete a model."""
-    user_id = req.state.jwt_user.username
+    user_id = req.state.user_id
     model_uuid = uuid.UUID(model_id)
     model = await Model.objects.get(id=model_uuid, private=False)
     if model is None and user_id is not None:

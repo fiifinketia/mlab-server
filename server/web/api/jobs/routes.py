@@ -68,7 +68,7 @@ async def create_job(
 ) -> None:
     """Create a new job."""
     job_id = uuid.uuid4()
-    user_id = req.state.jwt_user.username
+    user_id = req.state.user_id
     # Find model and get path
     model = None
     try:
@@ -106,7 +106,7 @@ async def run_train_model(
     req: Request
 ) -> Any:
     """Run job to train model."""
-    user_id = req.state.jwt_user.username
+    user_id = req.state.user_id
     dataset = await Dataset.objects.get(id=train_model_in.dataset_id, private=False)
     if dataset is None and user_id is not None:
         dataset = await Dataset.objects.get(id=train_model_in.dataset_id, private=True, owner_id=user_id)
@@ -134,7 +134,7 @@ async def run_test_model(
     req: Request
 ) -> Any:
     """Run job to test model."""
-    user_id = req.state.jwt_user.username
+    user_id = req.state.user_id
     dataset = await Dataset.objects.get(id=test_model_in.dataset_id, private=False)
     if dataset is None and user_id is not None:
         dataset = await Dataset.objects.get(id=test_model_in.dataset_id, private=True, owner_id=user_id)
