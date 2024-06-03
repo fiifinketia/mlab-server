@@ -41,7 +41,7 @@ def decode_jwt(token: str) -> Any:
     """Decode the JWT token."""
     try:
         decoded_token = jwt.decode(jwt=token, key=settings.jwt_secret, algorithms=[settings.jwt_algorithm], audience=settings.jwt_audience, issuer=settings.jwt_issuer, options={"require": ["exp", "sub", "aud", "iss"]})
-        return decoded_token if decoded_token["expires"] >= time() else None
+        return decoded_token if decoded_token["exp"] >= time() else None
     except(jwt.DecodeError, ValidationError) as e:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
