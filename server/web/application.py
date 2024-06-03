@@ -45,6 +45,7 @@ def get_app() -> FastAPI:
         if request.url.path.startswith("/api/docs") or request.url.path.startswith("/api/health") or request.url.path.startswith("/api/openapi.json"):
             return await call_next(request)
         credentials = request.headers.get("Authorization")
+        print(credentials)
         if credentials:
             if not credentials.startswith("Bearer "):
                 raise HTTPException(status_code=403, detail="Invalid authentication scheme.")
