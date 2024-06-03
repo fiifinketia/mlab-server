@@ -44,12 +44,13 @@ def get_app() -> FastAPI:
     async def check_auth(request: Request, call_next: Any) -> Any:
         if request.url.path.startswith("/api/docs") or request.url.path.startswith("/api/health") or request.url.path.startswith("/api/openapi.json"):
             return await call_next(request)
-        credentials = await HTTPBearer().__call__(request)
+        credentials = request.headers.get("Authorization")
         if credentials:
-            if not credentials.scheme == "Bearer":
+            if not credentials.startswith("Bearer "):
                 raise HTTPException(status_code=403, detail="Invalid authentication scheme.")
             try:
-                payload = verify_jwt(credentials.credentials)
+                token = credentials.split(" ")[1]
+                payload = verify_jwt(token)
                 request.state.jwt_user = payload
             except:
                 raise HTTPException(status_code=403, detail="Invalid authorization code.")
