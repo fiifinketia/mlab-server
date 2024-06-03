@@ -42,7 +42,7 @@ def get_app() -> FastAPI:
 
     @app.middleware("http")
     async def check_auth(request: Request, call_next: Any) -> Any:
-        if request.url.path.startswith("/api/docs") or request.url.path.startswith("/api/health"):
+        if request.url.path.startswith("/api/docs") or request.url.path.startswith("/api/health") or request.url.path.startswith("/api/openapi.json"):
             return await call_next(request)
         credentials = await HTTPBearer().__call__(request)
         if credentials:
