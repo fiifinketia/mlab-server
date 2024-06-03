@@ -27,7 +27,6 @@ class CreateModelRequest(BaseModel):
 @api_router.get("", tags=["models"], summary="Get all models")
 async def get_models(req: Request) -> list[Model]:
     """Get all models."""
-    print(req.state.jwt_user)
     user_id = req.state.user_id
     all_models = await Model.objects.all(private=False)
     user_models = None
