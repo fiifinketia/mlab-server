@@ -70,6 +70,9 @@ class Settings(BaseSettings):
     # JWT
     jwt_secret: str = os.getenv("JWT_SECRET", "")
     jwt_algorithm: str = os.getenv("JWT_ALGORITHM", "HS256")
+    jwt_audience: str = os.getenv("JWT_AUDIENCE", "")
+    jwt_issuer: str = os.getenv("JWT_ISSUER", "")
+
 
     # datasets_dir: str = git_user_path + "/datasets"
     # models_dir: str = git_user_path + "/models"
