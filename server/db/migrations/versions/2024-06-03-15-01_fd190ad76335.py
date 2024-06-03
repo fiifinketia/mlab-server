@@ -1,12 +1,13 @@
 """empty message
 
 Revision ID: fd190ad76335
-Revises: 
+Revises:
 Create Date: 2024-06-03 15:01:30.639662
 
 """
 from alembic import op
 import sqlalchemy as sa
+import ormar
 
 
 # revision identifiers, used by Alembic.
