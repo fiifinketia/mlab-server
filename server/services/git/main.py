@@ -35,7 +35,7 @@ class GitService:
         if not self.check_exists(repo_name=repo_name, namespace=namespace_id):
             self.gl.auth()
 
-            user = self.gl.users.get(username)
+            user = self.gl.users.list(search=username)[0]
             project = user.projects.create(
                 {
                     "name": repo_name,
@@ -69,7 +69,7 @@ class GitService:
 
     def add_ssh_key(self, key: str, title: str, username: str) -> None:
         """Add an SSH key."""
-        user = self.gl.users.get(username)
+        user = self.gl.users.list(search=username)[0]
         if user is not None:
             user.keys.create({"title": title, "key": key})
         else:
@@ -77,12 +77,12 @@ class GitService:
 
     def list_ssh_keys(self, username: str) -> Any:
         """List SSH keys."""
-        user = self.gl.users.get(username)
+        user = self.gl.users.list(search=username)[0]
         return user.keys.list()
 
     def delete_ssh_key(self, key: str, username: str) -> None:
         """Delete an SSH key."""
-        user = self.gl.users.get(username)
+        user = self.gl.users.list(search=username)[0]
         if user is not None:
             key_id = user.keys.list(search=key)[0].id
             user.keys.delete(key_id)
