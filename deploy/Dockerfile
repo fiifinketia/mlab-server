@@ -12,6 +12,7 @@ RUN poetry config virtualenvs.create false
 # # Copying requirements of a project
 COPY pyproject.toml poetry.lock /var/www/mlab/server/
 COPY .id_rsa /root/.ssh/id_rsa
+RUN chmod 600 ~/.ssh/id_rsa
 WORKDIR /var/www/mlab/server
 
 # Copy from local /var to container /var
