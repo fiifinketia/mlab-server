@@ -1,10 +1,14 @@
 """A service for interacting with git repositories."""
 import os
 from typing import Any, Dict
-from git import List, Repo
+from git import List, Repo, RemoteProgress
 from gitlab import Gitlab
 from server.settings import settings
 
+class CloneProgress(RemoteProgress):
+    def update(self, op_code, cur_count, max_count=None, message=''):
+        if message:
+            print(message)
 class RepoNotFoundError(Exception):
     """Raised when a repository is not found."""
     pass
@@ -56,7 +60,7 @@ class GitService:
         if self.check_exists(repo_name=repo_name_with_namspace):
             repo_git_url = self.make_clone_url(repo_with_namespace=repo_name_with_namspace)
             # allow all users to make changes to directory
-            Repo.clone_from(url=repo_git_url, to_path=to, branch=branch if branch is not None else "main", env={"GIT_SSH_COMMAND": f"ssh -i {settings.ssh_keys_path}/id_rsa -o StrictHostKeyChecking=no"})
+            Repo.clone_from(url=repo_git_url, to_path=to, branch=branch if branch is not None else "main", env={"GIT_SSH_COMMAND": f"ssh -i {settings.ssh_keys_path}/id_rsa -o StrictHostKeyChecking=no"}, progress=CloneProgress())
             return repo_git_url
         else:
             raise RepoNotFoundError(f"Repository '{repo_name_with_namspace}' does not exist.")
