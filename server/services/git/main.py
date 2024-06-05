@@ -52,7 +52,7 @@ class GitService:
         else:
             raise RepoNotFoundError(f"Repository '{repo_name}' already exists.")
 
-    def clone_repo(self, repo_name_with_namspace: str, to: str, branch: str | None = None) -> str:
+    def clone_repo(self, repo_name_with_namspace: str, to: str, branch: str | None = None):
         """Clone a repository."""
         # check if the repository has been cloned already
         if os.path.exists(to):
@@ -62,7 +62,6 @@ class GitService:
             # allow all users to make changes to directory
             self.clone_from(url=repo_git_url, to_path=to, branch=branch if branch is not None else "main")
             # Repo.clone_from(url="http://197.255.122.208/djemmanuelk20/model-jaal-net.git", to_path=f"{settings.results_dir}/tmp/", branch=branch if branch is not None else "main", env={"GIT_SSH_COMMAND": f"ssh -i {settings.ssh_keys_path}/id_rsa -o StrictHostKeyChecking=no"}, progress=CloneProgress())
-            return repo_git_url
         else:
             raise RepoNotFoundError(f"Repository '{repo_name_with_namspace}' does not exist.")
 
@@ -139,7 +138,7 @@ class GitService:
         """Clone a repository."""
         os.system(f"git config --global user.email disal@admin.git")
         os.system(f"git config --global user.name disal")
-        os.mkdir(to_path)
+        os.makedirs(to_path)
         os.chmod(to_path, 0o777)
         os.system(f"ssh-keyscan -t rsa {settings.gitlab_server} >> ~/.ssh/known_hosts")
         os.system(f"ssh -i {settings.ssh_keys_path}/id_rsa -o StrictHostKeyChecking=no")
