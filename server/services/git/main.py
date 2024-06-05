@@ -55,7 +55,7 @@ class GitService:
             raise ClonePathExistsError(f"Path '{to}' already exists.")
         if self.check_exists(repo_name=repo_name_with_namspace):
             repo_git_url = self.make_clone_url(repo_with_namespace=repo_name_with_namspace)
-            Repo.clone_from(url=repo_git_url, to_path=to, branch=branch if branch is not None else "main")
+            Repo.clone_from(url=repo_git_url, to_path=to, branch=branch if branch is not None else "main", env={"GIT_SSH_COMMAND": f"ssh -i {settings.ssh_keys_path}/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"})
             return repo_git_url
         else:
             raise RepoNotFoundError(f"Repository '{repo_name_with_namspace}' does not exist.")
