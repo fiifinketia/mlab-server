@@ -28,8 +28,8 @@ async def train_model(
     git = GitService()
 
     # clone dataset and model to a tmp directory and discard after use
-    dataset_path = settings.results_dir + "/tmp/" + str(job.id) + dataset.path
-    model_path = settings.results_dir + "/tmp/" + str(job.id) + model.path
+    dataset_path = settings.results_dir + "/tmp/" + str(job.id) + dataset.git_name
+    model_path = settings.results_dir + "/tmp/" + str(job.id) + model.git_name
     # clone specific jobb.repo_hash branch
     try:
         if os.path.exists(dataset_path):
