@@ -60,7 +60,8 @@ class GitService:
         if self.check_exists(repo_name=repo_name_with_namspace):
             repo_git_url = self.make_clone_url(repo_with_namespace=repo_name_with_namspace)
             # allow all users to make changes to directory
-            Repo.clone_from(url="http://197.255.122.208/djemmanuelk20/model-jaal-net.git", to_path=f"{settings.results_dir}/tmp/", branch=branch if branch is not None else "main", env={"GIT_SSH_COMMAND": f"ssh -i {settings.ssh_keys_path}/id_rsa -o StrictHostKeyChecking=no"}, progress=CloneProgress())
+            self.clone_from(url=repo_git_url, to_path=to, branch=branch if branch is not None else "main")
+            # Repo.clone_from(url="http://197.255.122.208/djemmanuelk20/model-jaal-net.git", to_path=f"{settings.results_dir}/tmp/", branch=branch if branch is not None else "main", env={"GIT_SSH_COMMAND": f"ssh -i {settings.ssh_keys_path}/id_rsa -o StrictHostKeyChecking=no"}, progress=CloneProgress())
             return repo_git_url
         else:
             raise RepoNotFoundError(f"Repository '{repo_name_with_namspace}' does not exist.")
@@ -133,3 +134,12 @@ class GitService:
     def make_clone_url(self, repo_with_namespace: str) -> str:
         """Make a clone url."""
         return f"ssh://git@{settings.gitlab_server}:2424/{repo_with_namespace}.git"
+
+    def clone_from(self, url: str, to_path: str, branch: str | None = None, env: dict[str, str] | None = None, progress: RemoteProgress | None = None) -> None:
+        """Clone a repository."""
+        os.system(f"git config --global user.email disal@admin.git")
+        os.system(f"git config --global user.name disal")
+        os.mkdir(to_path)
+        os.chmod(to_path, 0o777)
+        os.system(f"ssh -i {settings.ssh_keys_path}/id_rsa -o StrictHostKeyChecking=no git clone {url} {to_path}/. --branch {branch} --progress")
+        # os.system(f"git clone {url} {to_path}/. --branch {branch} --progress")
