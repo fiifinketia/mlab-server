@@ -64,6 +64,7 @@ class Settings(BaseSettings):
 
     # Variables for the GitHub API
     gitlab_url: str = os.getenv("GITLAB_URL", "")
+    gitlab_server: str = os.getenv("GITLAB_SERVER", "")
     gitlab_token: str = os.getenv("GITLAB_TOKEN", "")
     # git_user_path: str = "/var/lib/git"
 

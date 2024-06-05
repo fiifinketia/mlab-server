@@ -54,7 +54,7 @@ class GitService:
         if os.path.exists(to):
             raise ClonePathExistsError(f"Path '{to}' already exists.")
         if self.check_exists(repo_name=repo_name_with_namspace):
-            repo_git_url = self.gl.projects.get(repo_name_with_namspace).ssh_url_to_repo
+            repo_git_url = self.make_clone_url(repo_with_namespace=repo_name_with_namspace)
             Repo.clone_from(url=repo_git_url, to_path=to, branch=branch if branch is not None else "main")
             return repo_git_url
         else:
@@ -125,4 +125,6 @@ class GitService:
             return True if project is not None else False
         except Exception:
             return False
-
+    def make_clone_url(self, repo_with_namespace: str) -> str:
+        """Make a clone url."""
+        return f"ssh://git@${settings.gitlab_server}:2424/${repo_with_namespace}"
