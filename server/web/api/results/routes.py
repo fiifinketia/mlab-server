@@ -2,7 +2,7 @@ import datetime
 import os
 import uuid
 import zipfile
-from fastapi import APIRouter, HTTPException, Request, UploadFile
+from fastapi import APIRouter, HTTPException, Request, UploadFile, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel # pylint: disable=no-name-in-module
 from typing import Any
@@ -26,9 +26,10 @@ class TrainResultsIn(BaseModel):
     metrics: Any = {}
     history: Any = {}
 
-@api_router.get("/user/{user_id}", tags=["results"], summary="Get all results for a user")
-async def get_results(user_id: str) -> list[dict[str, Any]]:
+@api_router.get("/user", tags=["results"], summary="Get all results for a user")
+async def get_results(req: Request) -> list[dict[str, Any]]:
     """Get all results for a user."""
+    user_id = req.state.user_id
     results = await Result.objects.select_related("job").all(owner_id=user_id)
     result_list = []
     for result in results:

@@ -53,8 +53,9 @@ class TestModelIn(BaseModel):
 
 
 @api_router.get("", tags=["jobs"], summary="Get all jobs")
-async def get_jobs(user_id: str) -> list[Job]:
+async def get_jobs(req: Request) -> list[Job]:
     """Get all jobs."""
+    user_id = req.state.user_id
     if user_id is None:
         return await Job.objects.select_related("results").all()
     # Add results related to job
