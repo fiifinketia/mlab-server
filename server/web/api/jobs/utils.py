@@ -36,7 +36,7 @@ async def train_model(
             os.system(f"rm -rf {dataset_path}")
             os.system(f"rm -rf {model_path}")
         git.clone_repo(repo_name_with_namspace=dataset.git_name, to=dataset_path, branch= dataset_branch)
-        git.clone_repo(repo_name_with_namspace=model.git_name, to=model_path, branch= model_branch if model_branch is not None else job.model_branch)
+        git.clone_repo(repo_name_with_namspace=model.git_name, to=model_path, branch= model_branch)
     except RepoNotFoundError as e:
         os.system(f"rm -rf {dataset_path}")
         os.system(f"rm -rf {model_path}")
@@ -208,7 +208,7 @@ async def test_model(
             os.system(f"rm -rf {dataset_path}")
             os.system(f"rm -rf {model_path}")
         git.clone_repo(repo_name_with_namspace=dataset.git_name, to=dataset_path, branch= dataset_branch)
-        git.clone_repo(repo_name_with_namspace=model.git_name, to=model_path, branch= model_branch if model_branch is not None else job.model_branch)
+        git.clone_repo(repo_name_with_namspace=model.git_name, to=model_path, branch= model_branch)
     except RepoNotFoundError as e:
         os.system(f"rm -rf {dataset_path}")
         os.system(f"rm -rf {model_path}")
