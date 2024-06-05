@@ -127,4 +127,4 @@ class GitService:
             return False
     def make_clone_url(self, repo_with_namespace: str) -> str:
         """Make a clone url."""
-        return f"ssh://git@${settings.gitlab_server}:2424/${repo_with_namespace}"
+        return f"ssh://git@{settings.gitlab_server}:2424/{repo_with_namespace}.git"
