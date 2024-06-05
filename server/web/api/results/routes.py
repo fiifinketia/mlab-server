@@ -223,10 +223,10 @@ async def submit_train_results(
         # Return 200 OK
 
     dataset = await Dataset.objects.get(id=result.dataset_id)
-    dataset_path = f"{settings.results_dir}/tmp/{str(result.job.id)}/{dataset.path}"
+    dataset_path = f"{settings.results_dir}/tmp/{str(result.job.id)}/{dataset.git_name}"
 
     model = await Model.objects.get(id=result.job.model_id)
-    model_path = f"{settings.results_dir}/tmp/{str(result.job.id)}/{model.path}"
+    model_path = f"{settings.results_dir}/tmp/{str(result.job.id)}/{model.git_name}"
 
     os.system(f"rm -rf {dataset_path}")
     os.system(f"rm -rf {model_path}")
@@ -320,10 +320,10 @@ async def submit_test_results(
         # Return 200 OK
 
     dataset = await Dataset.objects.get(id=result.dataset_id)
-    dataset_path = f"{settings.results_dir}/tmp/{str(result.job.id)}/{dataset.path}"
+    dataset_path = f"{settings.results_dir}/tmp/{str(result.job.id)}/{dataset.git_name}"
 
     model = await Model.objects.get(id=result.job.model_id)
-    model_path = f"{settings.results_dir}/tmp/{str(result.job.id)}/{model.path}"
+    model_path = f"{settings.results_dir}/tmp/{str(result.job.id)}/{model.git_name}"
 
     os.system(f"rm -rf {dataset_path}")
     os.system(f"rm -rf {model_path}")

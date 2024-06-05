@@ -49,7 +49,7 @@ async def get_modle(model_id: str, req: Request) -> ModelResponse:
         raise HTTPException(status_code=404, detail=f"Model {model_id} not found")
     try:
         git = GitService()
-        files = git.list_files(model.path)
+        files = git.list_files(model.git_name)
     except RepoNotFoundError:
         files = []
     return ModelResponse(

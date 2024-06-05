@@ -36,7 +36,7 @@ async def fetch_dataset(dataset_id: str, req: Request) -> DatasetResponse:
         raise HTTPException(status_code=404, detail=f"Dataset {dataset_id} not found")
     try:
         git = GitService()
-        files = git.list_files(dataset.path)
+        files = git.list_files(dataset.git_name)
     except RepoNotFoundError:
         files = []
 

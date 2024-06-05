@@ -35,8 +35,8 @@ async def train_model(
         if os.path.exists(dataset_path):
             os.system(f"rm -rf {dataset_path}")
             os.system(f"rm -rf {model_path}")
-        git.clone_repo(repo_name_with_namspace=dataset.path, to=dataset_path, branch= dataset_branch)
-        git.clone_repo(repo_name_with_namspace=model.path, to=model_path, branch= model_branch if model_branch is not None else job.model_branch)
+        git.clone_repo(repo_name_with_namspace=dataset.git_name, to=dataset_path, branch= dataset_branch)
+        git.clone_repo(repo_name_with_namspace=model.git_name, to=model_path, branch= model_branch if model_branch is not None else job.model_branch)
     except RepoNotFoundError as e:
         os.system(f"rm -rf {dataset_path}")
         os.system(f"rm -rf {model_path}")
@@ -200,15 +200,15 @@ async def test_model(
     git = GitService()
 
     # clone dataset and model to a tmp directory and discard after use
-    dataset_path = settings.results_dir + "/tmp/" + str(job.id) + dataset.path
-    model_path = settings.results_dir + "/tmp/" + str(job.id) + model.path
+    dataset_path = settings.results_dir + "/tmp/" + str(job.id) + dataset.git_name
+    model_path = settings.results_dir + "/tmp/" + str(job.id) + model.git_name
     # clone specific jobb.repo_hash branch
     try:
         if os.path.exists(dataset_path):
             os.system(f"rm -rf {dataset_path}")
             os.system(f"rm -rf {model_path}")
-        git.clone_repo(repo_name_with_namspace=dataset.path, to=dataset_path, branch= dataset_branch)
-        git.clone_repo(repo_name_with_namspace=model.path, to=model_path, branch= model_branch if model_branch is not None else job.model_branch)
+        git.clone_repo(repo_name_with_namspace=dataset.git_name, to=dataset_path, branch= dataset_branch)
+        git.clone_repo(repo_name_with_namspace=model.git_name, to=model_path, branch= model_branch if model_branch is not None else job.model_branch)
     except RepoNotFoundError as e:
         os.system(f"rm -rf {dataset_path}")
         os.system(f"rm -rf {model_path}")
