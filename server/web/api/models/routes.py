@@ -71,30 +71,34 @@ async def get_modle(model_id: str, req: Request) -> ModelResponse:
 async def create_model(
     create_model_request: CreateModelRequest,
     req: Request
-) -> None:
+) -> Model:
     """Create a new model."""
     model_id = uuid.uuid4()
     user_id = req.state.user_id
+    try:
 
-    git = GitService()
-    git_path, clone_url = git.create_repo(
-        repo_name=create_model_request.name,
-        repo_type=RepoTypes.MODEL,
-        username=user_id,
-        is_private=create_model_request.private,
-    )
+        git = GitService()
+        git_path, clone_url = git.create_repo(
+            repo_name=create_model_request.name,
+            repo_type=RepoTypes.MODEL,
+            username=user_id,
+            is_private=create_model_request.private,
+        )
 
-    await Model.objects.create(
-        id=model_id,
-        name=create_model_request.name,
-        description=create_model_request.description,
-        owner_id=user_id,
-        version=create_model_request.version,
-        git_name=git_path,
-        clone_url=clone_url,
-        parameters=create_model_request.parameters,
-        private=create_model_request.private,
-    )
+        model = await Model.objects.create(
+            id=model_id,
+            name=create_model_request.name,
+            description=create_model_request.description,
+            owner_id=user_id,
+            version=create_model_request.version,
+            git_name=git_path,
+            clone_url=clone_url,
+            parameters=create_model_request.parameters,
+            private=create_model_request.private,
+        )
+    except RepoNotFoundError:
+        raise HTTPException(status_code=404, detail="Repository not found")
+    return model
 
 @api_router.delete("/{model_id}", tags=["models"], summary="Delete a model")
 async def delete_model(model_id: str, req: Request) -> None:
