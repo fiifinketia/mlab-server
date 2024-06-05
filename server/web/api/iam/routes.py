@@ -40,8 +40,9 @@ async def gen_key_pair(req: Request, rbody: UpdateKeyRequest) -> UserKeyPair:
     return key
 
 @api_router.get("/ssh_key")
-async def get_key_pair(user_id: str) -> UserKeyPair:
+async def get_key_pair(req: Request) -> UserKeyPair:
     """Get the key pair for a user."""
+    user_id = req.state.user_id
     try:
       key = await UserKeyPair.objects.get(user_id=user_id)
       return key
