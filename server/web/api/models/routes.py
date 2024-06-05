@@ -20,7 +20,6 @@ class CreateModelRequest(BaseModel):
     version: str
     parameters: dict[str, Any]
     private: bool = False
-    default_model: str | None = None
 
 
 
@@ -95,7 +94,6 @@ async def create_model(
         clone_url=clone_url,
         parameters=create_model_request.parameters,
         private=create_model_request.private,
-        default_model=create_model_request.default_model,
     )
 
 @api_router.delete("/{model_id}", tags=["models"], summary="Delete a model")
