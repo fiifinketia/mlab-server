@@ -43,7 +43,8 @@ class GitService:
                     "namespace_id": group_id,
                 }
             )
-            return (repo_name, project.ssh_url_to_repo)
+            repo_with_namespace = f"{username if group_id is None else group_id}/{repo_name}"
+            return (repo_with_namespace, project.ssh_url_to_repo)
         else:
             raise RepoNotFoundError(f"Repository '{repo_name}' already exists.")
 
