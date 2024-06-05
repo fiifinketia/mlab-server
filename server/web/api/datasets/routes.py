@@ -5,19 +5,12 @@ from pydantic import ValidationError
 # from server.db.models.jobs import Job
 # from server.db.models.ml_models import Model
 from server.db.models.datasets import Dataset
-from server.web.api.datasets.dto import DatasetIn, DatasetResponse
+from server.web.api.datasets.dto import DatasetInForm, DatasetResponse
 from server.services.git import GitService, RepoNotFoundError, RepoTypes
 
 api_router = APIRouter()
 
 CHUNK_SIZE = 1024 * 1024  # adjust the chunk size as desired
-
-
-class DatasetInForm(DatasetIn):
-    """Dataset form model."""
-    private: bool = Form(...)
-    name: str = Form(...)
-    description: str = Form(...)
 
 @api_router.get("", tags=["datasets"], summary="Get All datasets user has access to")
 async def fetch_datasets(req: Request) -> list[Dataset]:
