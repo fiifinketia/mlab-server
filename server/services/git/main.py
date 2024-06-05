@@ -40,7 +40,7 @@ class GitService:
                 {
                     "name": repo_name,
                     "visibility": "private" if is_private else "internal",
-                    "namespace_id": namespace_id,
+                    "namespace_id": group_id,
                 }
             )
             return (repo_name, project.ssh_url_to_repo)
