@@ -118,15 +118,15 @@ async def submit_pm_results(
 ) -> None:
     """Submit training results for a job."""
     result: Result
+    form = await request.form()
+    result_id: uuid.UUID = uuid.UUID(form["result_id"]) # type: ignore
+    result = await Result.objects.select_related("job").get(id=result_id)
+    if result is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Result {result_id} not found",
+        )
     if error:
-        form = await request.form()
-        result_id: uuid.UUID = uuid.UUID(form["result_id"]) # type: ignore
-        result = await Result.objects.select_related("job").get(id=result_id)
-        if result is None:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Result {result_id} not found",
-            )
         result.status = "error"
         error_form_files: list[str] = []
         for key, value in form.items():
@@ -162,14 +162,6 @@ async def submit_pm_results(
                 file_path = f"{job_base_dir}/{str(result_id)}/{file_name}"
                 with open(file_path, "wb") as f:
                     f.write(value.file.read())
-        result_id: uuid.UUID = uuid.UUID(form["result_id"]) # type: ignore
-        result = await Result.objects.select_related("job").get(id=result_id)
-        if result is None:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Result {result_id} not found",
-            )
-
         result.files.extend(form_files)
         result.metrics = metrics
         result.status = "done"
