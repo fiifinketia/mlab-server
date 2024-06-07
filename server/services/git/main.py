@@ -136,7 +136,7 @@ class GitService:
         """Clone a repository."""
         os.system(f"git config --global user.email disal@admin.git")
         os.system(f"git config --global user.name disal")
-        os.makedirs(to_path)
+        os.makedirs(to_path, exist_ok=True)
         os.chmod(to_path, 0o777)
         os.system(f"ssh-keyscan -t rsa {settings.gitlab_server} >> ~/.ssh/known_hosts")
         os.system(f"ssh -i {settings.ssh_keys_path}/id_rsa -o StrictHostKeyChecking=no")
