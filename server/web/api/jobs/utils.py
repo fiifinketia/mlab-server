@@ -183,7 +183,6 @@ async def prepare_environment(
     _, dataset_path, model_path = job_get_dirs(job_id, dataset_name, model_name)
     # clone specific jobb.repo_hash branch
     try:
-        git.fetch(repo_name_with_namspace=dataset_name, to=dataset_path, branch= dataset_branch)
         git.fetch(repo_name_with_namspace=model_name, to=model_path, branch= model_branch)
         run_install_requirements(model_path)
     except Exception as e:
