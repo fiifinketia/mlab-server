@@ -128,6 +128,7 @@ async def create_job(
         description=job_in.description,
         owner_id=user_id,
         model_id=job_in.model_id,
+        dataset_id=job_in.dataset_id,
         model_name=model.name,
         parameters=parameters,
     )
