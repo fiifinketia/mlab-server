@@ -145,9 +145,9 @@ class GitService:
         """Clone a repository."""
         # check if the repository has been cloned already
         if self.check_exists(repo_name=repo_name_with_namspace):
-            repo = Repo(path=to)
-            repo.git.checkout(branch if branch is not None else "main")
-            origin = repo.remotes.origin
-            origin.pull()
+            os.system(f"git config --global user.email disal@admin.git")
+            os.system(f"git config --global user.name disal")
+            os.chdir(to)
+            os.system(f"GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=no' git pull origin {branch if branch is not None else 'main'}")
         else:
             raise RepoNotFoundError(f"Repository '{repo_name_with_namspace}' does not exist.")
