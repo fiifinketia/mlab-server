@@ -25,7 +25,7 @@ class JobIn(BaseModel):
     owner_id: str
     model_id: uuid.UUID
     parameters: Optional[dict[str, Any]]
-    dataset_id: str
+    dataset_id: uuid.UUID
     # tags: list = []
 
 
@@ -108,7 +108,7 @@ async def create_job(
     except HTTPException as e:
         raise e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to create job: {str(e)}")
+        raise HTTPException(status_code=500) from e
     parameters = job_in.parameters
     if parameters is None:
         parameters = model.parameters
