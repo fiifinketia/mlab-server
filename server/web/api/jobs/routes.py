@@ -105,11 +105,10 @@ async def create_job(
             dataset = await Dataset.objects.get(id=job_in.dataset_id, private=True, owner_id=user_id)
         if dataset is None:
             raise HTTPException(status_code=404, detail=f"Dataset {job_in.dataset_id} not found")
+    except HTTPException as e:
+        raise e
     except:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Resource does not exist",
-        )
+        raise HTTPException(status_code=500)
     parameters = job_in.parameters
     if parameters is None:
         parameters = model.parameters
