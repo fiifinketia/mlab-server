@@ -196,7 +196,7 @@ async def run_env_setup_and_save(
 ) -> None:
     """Run environment setup and save the results"""
     try:
-        is_complete = setup_environment(job_id, dataset_name, model_name, dataset_branch, model_branch)
+        is_complete = await setup_environment(job_id, dataset_name, model_name, dataset_branch, model_branch)
         if is_complete:
             job = await Job.objects.get(id=job_id)
             job.ready = True
