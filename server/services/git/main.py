@@ -59,7 +59,6 @@ class GitService:
             repo_git_url = self.make_clone_url(repo_with_namespace=repo_name_with_namspace)
             # allow all users to make changes to directory
             self.clone_from(url=repo_git_url, to_path=to, branch=branch if branch is not None else "main")
-            # Repo.clone_from(url="http://197.255.122.208/djemmanuelk20/model-jaal-net.git", to_path=f"{settings.results_dir}/tmp/", branch=branch if branch is not None else "main", env={"GIT_SSH_COMMAND": f"ssh -i {settings.ssh_keys_path}/id_rsa -o StrictHostKeyChecking=no"}, progress=CloneProgress())
         else:
             raise RepoNotFoundError(f"Repository '{repo_name_with_namspace}' does not exist.")
 

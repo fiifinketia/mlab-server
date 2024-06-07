@@ -80,16 +80,17 @@ async def get_result(result_id: str) -> ResultResponse:
     model = await Model.objects.get(id=result.job.model_id)
     dataset = await Dataset.objects.get(id=result.dataset_id)
     files: list[ResultResponse.FileResponse] = []
+    jobs_base_dir, _, _ = job_get_dirs(result.job.id, "", "")
     if result is None:
         raise HTTPException(status_code=404, detail=f"Result {result_id} not found")
     result_size = 0
     for file in result.files:
         file_response = ResultResponse.FileResponse(
             name=file,
-            size=os.path.getsize(f"{settings.results_dir}/{str(result_id)}/{file}"),
+            size=os.path.getsize(f"{jobs_base_dir}/{str(result_id)}/{file}"),
         )
         files.append(file_response)
-        result_size += os.path.getsize(f"{settings.results_dir}/{str(result_id)}/{file}")
+        result_size += os.path.getsize(f"{jobs_base_dir}/{str(result_id)}/{file}")
     result_response = ResultResponse(
         size=result_size,
         id=result.id,
