@@ -139,5 +139,4 @@ class GitService:
         os.makedirs(to_path, exist_ok=True)
         os.chmod(to_path, 0o777)
         os.system(f"ssh-keyscan -t rsa {settings.gitlab_server} >> ~/.ssh/known_hosts")
-        # os.system(f"ssh git@{settings.gitlab_server} -i {settings.ssh_keys_path}/id_rsa -o StrictHostKeyChecking=no")
-        os.system(f"'GIT_SSH_COMMAND=ssh -o StrictHostKeyChecking=no'  git clone {url} {to_path}/. --branch {branch} --progress")
+        os.system(f"GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=no'  git clone {url} {to_path}/. --branch {branch} --progress")
