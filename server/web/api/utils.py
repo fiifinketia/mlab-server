@@ -1,7 +1,10 @@
 import os
 from typing import Any
+import uuid
 from git import PathLike, Repo, Tree
 from fastapi import HTTPException
+
+from server.settings import settings
 
 
 
@@ -24,3 +27,17 @@ def list_files_from_git(root: Tree, level:int=0)-> list[Any]:
         elif item.type == "tree":
             files.extend(list_files_from_git(item, level + 1))
     return files
+
+
+def job_get_dirs(
+    job_id: uuid.UUID,
+    dataset_name: str,
+    model_name: str,
+) -> tuple[str, str, str]:
+    """Get directories for dataset and model"""
+    base_dir = settings.results_dir + str(job_id)
+    dataset_path = base_dir + "/" + dataset_name
+    model_path = base_dir + "/" + model_name
+    os.makedirs(dataset_path, exist_ok=True)
+    os.makedirs(model_path, exist_ok=True)
+    return base_dir, dataset_path, model_path

@@ -173,6 +173,7 @@ sudo cp -r ~/Projects/MLab/mlab-server/. .
 sudo cp -r ~/Projects/MLab/mlab-server/. . | yes
 
 docker-compose -f deploy/docker-compose.yml --project-directory . down
+docker-compose -f deploy/docker-compose.yml --project-directory . logs
 cd /var/www/mlab/server/
 git pull
 cd ~/Projects/MLab/mlab-server/

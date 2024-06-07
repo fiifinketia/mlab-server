@@ -1317,13 +1317,13 @@ files = [
 
 [[package]]
 name = "mlab-py"
-version = "0.5.2"
+version = "1.0.3"
 description = "Python packages for mlab ecosystem"
 optional = false
 python-versions = "<4.0,>=3.8"
 files = [
-    {file = "mlab_py-0.5.2-py3-none-any.whl", hash = "sha256:1e5db5082fb758b280a521aef3b3bfeb902ae8dbe672cc7076fb9344418a4933"},
-    {file = "mlab_py-0.5.2.tar.gz", hash = "sha256:8adc3c01e4bcf5fa4eec7397d5cf32691ae40efa056ddfeb646329b5b525130b"},
+    {file = "mlab_py-1.0.3-py3-none-any.whl", hash = "sha256:ad64f334964d863a04138c06405ffa9bcbbe46c0caa1a9dfe90bdee184bd48dd"},
+    {file = "mlab_py-1.0.3.tar.gz", hash = "sha256:dd52a808de5708781b1525ea3a6bd1a7ddb0cd5aaca940236ff5a14b7c515434"},
 ]
 
 [[package]]
@@ -2776,4 +2776,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "1d184462c4c411126b14d734fdc924d50c4488904b60c515ac8ea7337326c33d"
+content-hash = "54d50b5a4469c5951dfa6999ffca4fa10a0b8043c04c619a956ed1789c073454"

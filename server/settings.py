@@ -74,6 +74,8 @@ class Settings(BaseSettings):
     jwt_audience: str = os.getenv("JWT_AUDIENCE", "")
     jwt_issuer: str = os.getenv("JWT_ISSUER", "")
 
+    job_limit: int = int(os.getenv("JOB_LIMIT", "3"))
+
 
     # datasets_dir: str = git_user_path + "/datasets"
     # models_dir: str = git_user_path + "/models"
