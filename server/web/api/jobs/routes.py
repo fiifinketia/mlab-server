@@ -16,6 +16,9 @@ from server.web.api.jobs.utils import train_model, test_model, run_env_setup_and
 
 api_router = APIRouter()
 
+class JobWithResults(Job):
+    """Job with results"""
+    results: list[Result] = []
 
 class JobIn(BaseModel):
     """Job in"""
@@ -34,7 +37,6 @@ class TrainModelIn(BaseModel):
 
     job_id: uuid.UUID
     user_id: str
-    dataset_id: uuid.UUID
     parameters: dict[str, Any] = {}
     name: str
     model_branch: str | None = None
@@ -53,7 +55,7 @@ class TestModelIn(BaseModel):
     dataset_branch: str | None = None
 
 
-@api_router.get("", tags=["jobs"], summary="Get all jobs")
+@api_router.get("", tags=["jobs"], summary="Get all jobs", response_model=list[JobWithResults])
 async def get_jobs(req: Request) -> list[Job]:
     """Get all jobs."""
     user_id = req.state.user_id
@@ -155,12 +157,8 @@ async def run_train_model(
     job = await Job.objects.get(id=train_model_in.job_id)
     if not job.ready:
         raise HTTPException(status_code=400, detail=f"Job {train_model_in.job_id} is not ready")
-    dataset = await Dataset.objects.get(id=train_model_in.dataset_id, private=False)
-    if dataset is None and user_id is not None:
-        dataset = await Dataset.objects.get(id=train_model_in.dataset_id, private=True, owner_id=user_id)
-    if dataset is None:
-        raise HTTPException(status_code=404, detail=f"Dataset {train_model_in.dataset_id} not found")
     job = await Job.objects.get(id=train_model_in.job_id)
+    dataset = await Dataset.objects.get(id=job.dataset_id, private=False)
     model = await Model.objects.get(id=job.model_id)
     loop = asyncio.get_event_loop()
     loop.create_task(
