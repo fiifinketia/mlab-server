@@ -189,8 +189,9 @@ async def zip_files_for_download(
     for file in result.files:
         # write file to zip without directory structure
         file_name = "results/" + file
+        jobs_base_dir, _, _ = job_get_dirs(result.job.id, "", "")
         zip_file.write(
-            f"{settings.results_dir}/{str(result_id)}/{file}",
+            f"{jobs_base_dir}/{str(result_id)}/{file}",
             arcname=file_name,
         )
     zip_file.close()
@@ -207,5 +208,6 @@ async def download_file(
     if result is None:
         raise HTTPException(status_code=404, detail=f"Result {result_id} not found")
     # Zip all files in result.files
-    file_path = f"{settings.results_dir}/{str(result_id)}/{file_name}"
+    jobs_base_dir, _, _ = job_get_dirs(result.job.id, "", "")
+    file_path = f"{jobs_base_dir}/{str(result_id)}/{file_name}"
     return FileResponse(file_path, filename=file_name)
