@@ -107,8 +107,8 @@ async def create_job(
             raise HTTPException(status_code=404, detail=f"Dataset {job_in.dataset_id} not found")
     except HTTPException as e:
         raise e
-    except:
-        raise HTTPException(status_code=500)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create job: {str(e)}")
     parameters = job_in.parameters
     if parameters is None:
         parameters = model.parameters
