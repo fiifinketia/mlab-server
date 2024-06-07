@@ -140,3 +140,14 @@ class GitService:
         os.chmod(to_path, 0o777)
         os.system(f"ssh-keyscan -t rsa {settings.gitlab_server} >> ~/.ssh/known_hosts")
         os.system(f"GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=no'  git clone {url} {to_path}/. --branch {branch} --progress")
+
+    def fetch(self, repo_name_with_namspace: str, to: str, branch: str | None = None) -> None:
+        """Clone a repository."""
+        # check if the repository has been cloned already
+        if self.check_exists(repo_name=repo_name_with_namspace):
+            repo = Repo(path=to)
+            repo.git.checkout(branch if branch is not None else "main")
+            origin = repo.remotes.origin
+            origin.pull()
+        else:
+            raise RepoNotFoundError(f"Repository '{repo_name_with_namspace}' does not exist.")

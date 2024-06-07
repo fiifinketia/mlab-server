@@ -62,6 +62,9 @@ async def train_model(
                 "Error running script",
                 install_output.stderr,
             )
+
+        await prepare_environment(job.id, dataset.git_name, model.git_name, dataset_branch, model_branch)
+
         # Run the script
         executor = ProcessPoolExecutor()
 
@@ -128,6 +131,8 @@ async def test_model(
         # Run the script
         trained_model = pretrained_model if pretrained_model is not None else f"{model_path}/{model.default_model}"
 
+        await prepare_environment(job.id, dataset.git_name, model.git_name, dataset_branch, model_branch)
+
         executor = ProcessPoolExecutor()
 
         executor.submit(
@@ -163,6 +168,29 @@ def run_install_requirements(
     # Run the command
     return subprocess.run(command, shell=True, executable="/bin/bash", check=True)
 
+async def prepare_environment(
+    job_id: uuid.UUID,
+    dataset_name: str,
+    model_name: str,
+    dataset_branch: str | None = None,
+    model_branch: str | None = None,
+) -> bool:
+    """Prepare the environment for the job"""
+    # Clone Dataset to job_results_dir
+    git = GitService()
+
+    # clone dataset and model to a tmp directory and discard after use
+    _, dataset_path, model_path = job_get_dirs(job_id, dataset_name, model_name)
+    # clone specific jobb.repo_hash branch
+    try:
+        git.fetch(repo_name_with_namspace=dataset_name, to=dataset_path, branch= dataset_branch)
+        git.fetch(repo_name_with_namspace=model_name, to=model_path, branch= model_branch)
+        run_install_requirements(model_path)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error Preparing Environment: {str(e)}")
+
+    return True
+
 async def setup_environment(
         job_id: uuid.UUID,
         dataset_name: str,
@@ -174,7 +202,7 @@ async def setup_environment(
     git = GitService()
 
     # clone dataset and model to a tmp directory and discard after use
-    job_base_dir, dataset_path, model_path = job_get_dirs(job_id, dataset_name, model_name)
+    _, dataset_path, model_path = job_get_dirs(job_id, dataset_name, model_name)
     # clone specific jobb.repo_hash branch
     try:
         git.clone_repo(repo_name_with_namspace=dataset_name, to=dataset_path, branch= dataset_branch)
@@ -323,6 +351,6 @@ async def handle_subprocess_error(
 def remove_job_env(job_id: uuid.UUID, dataset_name: str, model_name: str) -> None:
     """Close a job"""
     # Delete the dataset and model directories
-    job_base_dir, model_path, dataset_path = job_get_dirs(job_id, dataset_name, model_name)
+    _, model_path, dataset_path = job_get_dirs(job_id, dataset_name, model_name)
     os.system(f"rm -rf {model_path}")
     os.system(f"rm -rf {dataset_path}")
