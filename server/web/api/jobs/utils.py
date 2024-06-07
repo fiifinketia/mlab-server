@@ -54,15 +54,6 @@ async def train_model(
     )
 
     try:
-        install_output = run_install_requirements(model_path)
-        if install_output.returncode != 0:
-            raise subprocess.CalledProcessError(
-                install_output.returncode,
-                install_output.args,
-                "Error running script",
-                install_output.stderr,
-            )
-
         await prepare_environment(job.id, dataset.git_name, model.git_name, dataset_branch, model_branch)
 
         # Run the script
@@ -120,18 +111,10 @@ async def test_model(
     # Run the script
 
     try:
-        install_output = run_install_requirements(model_path)
-        if install_output.returncode != 0:
-            raise subprocess.CalledProcessError(
-                install_output.returncode,
-                install_output.args,
-                "Error running script",
-                install_output.stderr,
-            )
+        await prepare_environment(job.id, dataset.git_name, model.git_name, dataset_branch, model_branch)
         # Run the script
         trained_model = pretrained_model if pretrained_model is not None else f"{model_path}/{model.default_model}"
 
-        await prepare_environment(job.id, dataset.git_name, model.git_name, dataset_branch, model_branch)
 
         executor = ProcessPoolExecutor()
 
@@ -180,11 +163,18 @@ async def prepare_environment(
     git = GitService()
 
     # clone dataset and model to a tmp directory and discard after use
-    _, dataset_path, model_path = job_get_dirs(job_id, dataset_name, model_name)
+    _, _, model_path = job_get_dirs(job_id, dataset_name, model_name)
     # clone specific jobb.repo_hash branch
     try:
         git.fetch(repo_name_with_namspace=model_name, to=model_path, branch= model_branch)
-        run_install_requirements(model_path)
+        install_output = run_install_requirements(model_path)
+        if install_output.returncode != 0:
+            raise subprocess.CalledProcessError(
+                install_output.returncode,
+                install_output.args,
+                "Error running script",
+                install_output.stderr,
+            )
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error Preparing Environment: {str(e)}")
 
