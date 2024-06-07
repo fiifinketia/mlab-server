@@ -139,7 +139,7 @@ async def create_job(
             model_name=model.git_name,
             dataset_name=dataset.git_name,
         )
-    ).add_done_callback(lambda x: print(x.result()))
+    )
 
 
 

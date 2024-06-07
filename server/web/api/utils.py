@@ -35,7 +35,7 @@ def job_get_dirs(
     model_name: str,
 ) -> tuple[str, str, str]:
     """Get directories for dataset and model"""
-    base_dir = settings.results_dir + str(job_id)
+    base_dir = settings.results_dir + "/" +str(job_id)
     dataset_path = base_dir + "/" + dataset_name
     model_path = base_dir + "/" + model_name
     os.makedirs(dataset_path, exist_ok=True)
