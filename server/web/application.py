@@ -54,7 +54,7 @@ def get_app() -> FastAPI:
                 token = credentials.split(" ")[1]
                 payload = verify_jwt(token)
                 request.state.user_id = payload.get("username")
-                request.state.user_token = credentials
+                request.state.user_token = token
             except:
                 raise HTTPException(status_code=403, detail="Invalid authorization code.")
             return await call_next(request)
