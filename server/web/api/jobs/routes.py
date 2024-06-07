@@ -55,7 +55,7 @@ class TestModelIn(BaseModel):
     dataset_branch: str | None = None
 
 
-@api_router.get("", tags=["jobs"], summary="Get all jobs", response_model=list[JobWithResults])
+@api_router.get("", tags=["jobs"], summary="Get all jobs", response_model=list[Job])
 async def get_jobs(req: Request) -> list[Job]:
     """Get all jobs."""
     user_id = req.state.user_id
