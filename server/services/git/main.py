@@ -52,11 +52,9 @@ class GitService:
         else:
             raise RepoNotFoundError(f"Repository '{repo_name}' already exists.")
 
-    def clone_repo(self, repo_name_with_namspace: str, to: str, branch: str | None = None):
+    def clone_repo(self, repo_name_with_namspace: str, to: str, branch: str | None = None) -> None:
         """Clone a repository."""
         # check if the repository has been cloned already
-        if os.path.exists(to):
-            raise ClonePathExistsError(f"Path '{to}' already exists.")
         if self.check_exists(repo_name=repo_name_with_namspace):
             repo_git_url = self.make_clone_url(repo_with_namespace=repo_name_with_namspace)
             # allow all users to make changes to directory
