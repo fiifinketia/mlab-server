@@ -151,7 +151,7 @@ def run_install_requirements(
     venv_name = f"{str(job_id)}-venv"
     if check_for_venv(venv_name) is False:
         subprocess.run(f"conda create -n {venv_name} python=3.11 -y", shell=True, executable="/bin/bash", check=True)
-    command = f"conda run -n {venv_name} pip install -r {model_path}/requirements.txt -y"
+    command = f"conda run -n {venv_name} pip install -r {model_path}/requirements.txt"
     # Run the command
     return subprocess.run(command, shell=True, executable="/bin/bash", check=True)
 
