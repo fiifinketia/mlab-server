@@ -66,6 +66,7 @@ async def train_model(
             result_id=result_id,
             api_url=f"{settings.api_url}/results/submit",
             user_token=user_token,
+            venv_name=f"{str(job.id)}-venv",
         )
     except subprocess.CalledProcessError as e:
         await handle_subprocess_error(result_dir=result_dir, e=e, files=files, result=result, job=job)
@@ -126,21 +127,31 @@ async def test_model(
             api_url=f"{settings.api_url}/results/submit",
             pretrained_model=trained_model,
             user_token=user_token,
+            venv_name=f"{str(job.id)}-venv",
         )
     except subprocess.CalledProcessError as e:
         await handle_subprocess_error(result_dir=result_dir, e=e, files=files, result=result, job=job)
     return result
 
+def check_for_venv(venv_name: str) -> bool:
+    """Check if a virtual environment exists"""
+    process = subprocess.run(f"conda env list | grep {venv_name}", shell=True, executable="/bin/bash", check=False, stdout=subprocess.PIPE)
+    if process.returncode == 0:
+        # check if it returns any output
+        if process.stdout is not None:
+            return True
+    return False
 
 def run_install_requirements(
-    model_path: str
+    model_path: str,
+    job_id: uuid.UUID,
 ) -> subprocess.CompletedProcess[bytes]:
     """Install requirements in a virtual environment using ProcessPoolExecutor"""
     # Activate the virtual environment
-    venv_path = f"{model_path}/venv"
-    if not os.path.exists(venv_path):
-        subprocess.run(f"python3 -m venv {venv_path}", shell=True, executable="/bin/bash", check=True)
-    activate_venv = f"source {venv_path}/bin/activate"
+    venv_name = f"{str(job_id)}-venv"
+    if check_for_venv(venv_name) is False:
+        subprocess.run(f"conda create -n {venv_name} python=3.11", shell=True, executable="/bin/bash", check=True)
+    activate_venv = f"conda activate {venv_name}"
 
     # Run install requirements
     install_requirements = f"pip install -r {model_path}/requirements.txt"
@@ -167,7 +178,7 @@ async def prepare_environment(
     # clone specific jobb.repo_hash branch
     try:
         git.fetch(repo_name_with_namspace=model_name, to=model_path, branch= model_branch)
-        install_output = run_install_requirements(model_path)
+        install_output = run_install_requirements(model_path, job_id)
         if install_output.returncode != 0:
             raise subprocess.CalledProcessError(
                 install_output.returncode,
@@ -196,7 +207,7 @@ async def setup_environment(
     try:
         git.clone_repo(repo_name_with_namspace=dataset_name, to=dataset_path, branch= dataset_branch)
         git.clone_repo(repo_name_with_namspace=model_name, to=model_path, branch= model_branch)
-        run_install_requirements(model_path)
+        run_install_requirements(model_path, job_id)
     except Exception as e:
         os.system(f"rm -rf {dataset_path}")
         os.system(f"rm -rf {model_path}")
