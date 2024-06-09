@@ -150,8 +150,8 @@ def run_install_requirements(
     # Activate the virtual environment
     venv_name = f"{str(job_id)}-venv"
     if check_for_venv(venv_name) is False:
-        subprocess.run(f"conda create -n {venv_name} python=3.11 -y && conda init", shell=True, executable="/bin/bash", check=True)
-    activate_venv = f"conda activate {venv_name}"
+        subprocess.run(f"conda create -n {venv_name} python=3.11 -y", shell=True, executable="/bin/bash", check=True)
+    activate_venv = f"conda init bash && conda activate {venv_name}"
 
     # Run install requirements
     install_requirements = f"pip install -r {model_path}/requirements.txt"
