@@ -123,24 +123,6 @@ class Settings(BaseSettings):
             path=path,
         )
 
-    @property
-    def jobs_dir(self) -> str:
-        """
-        Return path to jobs directory."""
-        # create a path to the jobs directory
-        jobs_dir = "/var/lib/docker/volumes/filez-jobs"
-        # create the directory if it does not exist
-        return jobs_dir
-
-    @property
-    def results_dir(self) -> str:
-        """
-        Return path to results directory."""
-        # create a path to the results directory
-        results_dir = "/var/lib/docker/volumes/filez-results"
-        # create the directory if it does not exist
-        return results_dir
-
 
     class Config:
         """Configuration for settings."""
