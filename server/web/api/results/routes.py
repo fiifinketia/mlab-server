@@ -173,7 +173,7 @@ async def submit_pm_results(
 
         result.modified = datetime.datetime.now()
         await result.update()
-    result.job.ready = False
+    result.job.ready = True
     result.job.modified = datetime.datetime.now()
     await result.job.update()
 
