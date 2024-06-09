@@ -150,7 +150,7 @@ def run_install_requirements(
     # Activate the virtual environment
     venv_name = f"{str(job_id)}-venv"
     if check_for_venv(venv_name) is False:
-        subprocess.run(f"conda create -n {venv_name} python=3.11", shell=True, executable="/bin/bash", check=True)
+        subprocess.run(f"conda create -n {venv_name} python=3.11 -y", shell=True, executable="/bin/bash", check=True)
     activate_venv = f"conda activate {venv_name}"
 
     # Run install requirements
@@ -352,5 +352,7 @@ def remove_job_env(job_id: uuid.UUID, dataset_name: str, model_name: str) -> Non
     """Close a job"""
     # Delete the dataset and model directories
     _, model_path, dataset_path = job_get_dirs(job_id, dataset_name, model_name)
+    venv_name = f"{str(job_id)}-venv"
     os.system(f"rm -rf {model_path}")
     os.system(f"rm -rf {dataset_path}")
+    os.system(f"conda remove -n {venv_name} --all -y")
