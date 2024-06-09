@@ -145,7 +145,7 @@ def check_for_venv(venv_name: str) -> bool:
 def run_install_requirements(
     model_path: str,
     job_id: uuid.UUID,
-) -> subprocess.CompletedProcess[bytes]:
+) -> int:
     """Install requirements in a virtual environment using ProcessPoolExecutor"""
     # Activate the virtual environment
     venv_name = f"{str(job_id)}-venv"
@@ -153,7 +153,7 @@ def run_install_requirements(
         subprocess.run(f"conda create -n {venv_name} python=3.11 -y", shell=True, executable="/bin/bash", check=True)
     command = f"conda run -n {venv_name} pip install -r {model_path}/requirements.txt"
     # Run the command
-    return subprocess.run(command, shell=True, executable="/bin/bash", check=True)
+    return os.system(command)
 
 async def prepare_environment(
     job_id: uuid.UUID,
@@ -172,13 +172,8 @@ async def prepare_environment(
     try:
         git.fetch(repo_name_with_namspace=model_name, to=model_path, branch= model_branch)
         install_output = run_install_requirements(model_path, job_id)
-        if install_output.returncode != 0:
-            raise subprocess.CalledProcessError(
-                install_output.returncode,
-                install_output.args,
-                "Error running script",
-                install_output.stderr,
-            )
+        if install_output != 0:
+            raise Exception("Error Installing Requirements")
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error Preparing Environment: {str(e)}")
 
