@@ -77,6 +77,12 @@ class Settings(BaseSettings):
     job_limit: int = int(os.getenv("JOB_LIMIT", "3"))
 
 
+    results_dir: str = os.getenv("RESULTS_DIR", "/var/lib/docker/volumes/filez-results")
+    jobs_dir: str = os.getenv("JOBS_DIR", "/var/lib/docker/volumes/filez-jobs")
+    models_dir: str = os.getenv("MODELS_DIR", "/var/lib/docker/volumes/filez-models")
+    datasets_dir: str = os.getenv("DATASETS_DIR", "/var/lib/docker/volumes/filez-datasets")
+
+
     # datasets_dir: str = git_user_path + "/datasets"
     # models_dir: str = git_user_path + "/models"
 
