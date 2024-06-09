@@ -1,4 +1,5 @@
 """Routes for jobs API."""
+import datetime
 import os
 from typing import Any, Coroutine, Optional
 import uuid
@@ -84,6 +85,7 @@ async def close_job(
     except:
         HTTPException(status_code=400, detail=f"Failed to remove job environment")
     job.closed = True
+    job.modified = datetime.datetime.now()
     await job.update()
 
 @api_router.post("", tags=["jobs"], summary="Create a new job")
@@ -154,7 +156,7 @@ async def run_train_model(
     user_id = req.state.user_id
     user_token = req.state.user_token
     # Check if job is ready
-    job = await Job.objects.get(id=train_model_in.job_id)
+    job = await Job.objects.get(id=train_model_in.job_id, owner_id=user_id)
     if not job.ready:
         raise HTTPException(status_code=400, detail=f"Job {train_model_in.job_id} is not ready")
     job = await Job.objects.get(id=train_model_in.job_id)
@@ -173,6 +175,9 @@ async def run_train_model(
             user_token=user_token
         )
     )
+    job.ready = False
+    job.modified = datetime.datetime.now()
+    await job.update()
     return "Training model"
 
 @api_router.post("/test", tags=["jobs", "models", "results"], summary="Run job to test model")
@@ -227,4 +232,9 @@ async def run_test_model(
             model_branch=test_model_in.model_branch,
             user_token=user_token
         ))
+    job.ready = False
+    job.modified = datetime.datetime.now()
+    await job.update()
     return "Testing model"
+
+# TODO: Add stop job route

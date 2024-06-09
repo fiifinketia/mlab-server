@@ -173,7 +173,9 @@ async def submit_pm_results(
 
         result.modified = datetime.datetime.now()
         await result.update()
-        # Return 200 OK
+    result.job.ready = False
+    result.job.modified = datetime.datetime.now()
+    await result.job.update()
 
 @api_router.get("/download/{result_id}", tags=["results"], summary="Download a result")
 async def zip_files_for_download(

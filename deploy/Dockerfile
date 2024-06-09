@@ -1,4 +1,9 @@
-FROM python:3.11.4-slim-bullseye as prod
+FROM nvidia/cuda:12.3.1-base-ubuntu20.04 as prod
+
+RUN apt-get update && \
+    apt-get install -y python3-pip python3-dev python-is-python3 && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN apt-get update && apt-get install -y \
   gcc \
   && rm -rf /var/lib/apt/lists/*

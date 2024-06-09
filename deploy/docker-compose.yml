@@ -41,6 +41,13 @@ services:
       SERVER_DB_PASS: ${DB_PASS}
       SERVER_DB_BASE: ${DB_BASE}
       SERVER_REDIS_HOST: server-redis
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
   migrator:
     image: server:${SERVER_VERSION:-latest}
