@@ -35,7 +35,6 @@ class Result(ormar.Model):
     created: datetime.datetime = ormar.DateTime(default=datetime.datetime.now)
     modified: datetime.datetime = ormar.DateTime(default=datetime.datetime.now)
     metrics: dict[str, float] = ormar.JSON(default=[])
-    files: list[str] = ormar.JSON(default=[])
     parameters: dict[str, Any] = ormar.JSON(default={})
     pretrained_model: str = ormar.String(max_length=300, nullable=True)
     predictions: dict[str, Any] = ormar.JSON(default={})

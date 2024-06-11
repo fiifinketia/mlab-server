@@ -41,6 +41,7 @@ class Settings(BaseSettings):
     ssh_keys_path: str = "/root/.ssh"
 
     api_url: str = os.getenv("API_URL", "http://localhost:8000")
+    cog_internal_api_url: str = os.getenv("COG_INTERNAL_API_URL", "http://host.docker.internal:8090/api")
 
     x_api_key: str = os.getenv("X_API_KEY", "")
 
@@ -76,13 +77,9 @@ class Settings(BaseSettings):
 
     job_limit: int = int(os.getenv("JOB_LIMIT", "3"))
 
+    cog_base_dir = os.getenv("COG_BASE_DIR", "/var/lib/docker/volumes/filez")
 
-    results_dir: str = os.getenv("RESULTS_DIR", "/var/lib/docker/volumes/filez-results")
-    jobs_dir: str = os.getenv("JOBS_DIR", "/var/lib/docker/volumes/filez-jobs")
-    models_dir: str = os.getenv("MODELS_DIR", "/var/lib/docker/volumes/filez-models")
-    datasets_dir: str = os.getenv("DATASETS_DIR", "/var/lib/docker/volumes/filez-datasets")
-
-
+    results_dir: str = os.getenv("RESULTS_DIR", "/var/lib/docker/volumes/filez/results")
     # datasets_dir: str = git_user_path + "/datasets"
     # models_dir: str = git_user_path + "/models"
 

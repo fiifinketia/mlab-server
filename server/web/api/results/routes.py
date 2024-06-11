@@ -1,6 +1,7 @@
 """Routes for results."""
 import datetime
 import os
+from pathlib import Path
 import uuid
 import zipfile
 import json
@@ -11,10 +12,9 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel # pylint: disable=no-name-in-module
 from server.db.models.datasets import Dataset
 from server.db.models.ml_models import Model
-from server.settings import settings
 
 from server.db.models.results import Result
-from server.web.api.utils import job_get_dirs
+from server.web.api.utils import get_files_in_path, job_get_dirs
 
 
 api_router = APIRouter()
@@ -81,16 +81,18 @@ async def get_result(result_id: str) -> ResultResponse:
     dataset = await Dataset.objects.get(id=result.dataset_id)
     files: list[ResultResponse.FileResponse] = []
     jobs_base_dir, _, _ = job_get_dirs(result.job.id, "", "")
+    result_dir = Path(f"{jobs_base_dir}/{str(result_id)}")
     if result is None:
         raise HTTPException(status_code=404, detail=f"Result {result_id} not found")
     result_size = 0
-    for file in result.files:
+    result_files = get_files_in_path(result_dir)
+    for file in result_files:
         file_response = ResultResponse.FileResponse(
             name=file,
-            size=os.path.getsize(f"{jobs_base_dir}/{str(result_id)}/{file}"),
+            size=os.path.getsize(result_dir),
         )
         files.append(file_response)
-        result_size += os.path.getsize(f"{jobs_base_dir}/{str(result_id)}/{file}")
+        result_size += os.path.getsize(result_dir)
     result_response = ResultResponse(
         size=result_size,
         id=result.id,
@@ -129,24 +131,20 @@ async def submit_pm_results(
         )
     if error:
         result.status = "error"
-        error_form_files: list[str] = []
         for key, value in form.items():
             # error file is a file with name error.txt
             if type(value) == starlette.datastructures.UploadFile:
-                error_form_files.append(value.filename if value.filename is not None else "error.txt")
                 job_base_dir, _, _ = job_get_dirs(result.job.id, "", "")
                 file_path = f"{job_base_dir}/{str(result_id)}/{value.filename}"
                 with open(file_path, "wb") as f:
                     f.write(value.file.read())
 
-        result.files = error_form_files
         result.modified = datetime.datetime.now()
         await result.update()
     else:
         form = await request.form()
         metrics = {}
         predictions = {} # type: ignore
-        form_files: list[str] = []
         for key, value in form.items():
             if key.startswith("metrics"):
                 metrics = json.loads(value) # type: ignore
@@ -158,12 +156,10 @@ async def submit_pm_results(
                 pkg_name = str(value)
             elif isinstance(value, starlette.datastructures.UploadFile):
                 file_name = value.filename if value.filename is not None else key
-                form_files.append(file_name)
                 job_base_dir, _, _ = job_get_dirs(result.job.id, "", "")
                 file_path = f"{job_base_dir}/{str(result_id)}/{file_name}"
                 with open(file_path, "wb") as f:
                     f.write(value.file.read())
-        result.files.extend(form_files)
         result.metrics = metrics
         result.status = "done"
         if pkg_name == "pymlab.train":
@@ -184,15 +180,16 @@ async def zip_files_for_download(
     """Download a result."""
     result_uuid = uuid.UUID(result_id)
     result = await Result.objects.select_related("job").get(id=result_uuid)
+    jobs_base_dir, _, _ = job_get_dirs(result.job.id, "", "")
+    result_dir = Path(f"{jobs_base_dir}/{str(result_id)}")
     if result is None:
         raise HTTPException(status_code=404, detail=f"Result {result_id} not found")
-    # Zip all files in result.files
     zip_file_path = f"{result_id}.zip"
     zip_file = zipfile.ZipFile(zip_file_path, "w")
-    for file in result.files:
+    result_files = get_files_in_path(result_dir)
+    for file in result_files:
         # write file to zip without directory structure
         file_name = "results/" + file
-        jobs_base_dir, _, _ = job_get_dirs(result.job.id, "", "")
         zip_file.write(
             f"{jobs_base_dir}/{str(result_id)}/{file}",
             arcname=file_name,
@@ -210,7 +207,6 @@ async def download_file(
     result = await Result.objects.select_related("job").get(id=result_uuid)
     if result is None:
         raise HTTPException(status_code=404, detail=f"Result {result_id} not found")
-    # Zip all files in result.files
     jobs_base_dir, _, _ = job_get_dirs(result.job.id, "", "")
-    file_path = f"{jobs_base_dir}/{str(result_id)}/{file_name}"
+    file_path = Path(f"{jobs_base_dir}/{str(result_id)}/{file_name}")
     return FileResponse(file_path, filename=file_name)

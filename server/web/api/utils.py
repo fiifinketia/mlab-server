@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import Any
 import uuid
 from git import PathLike, Repo, Tree
@@ -41,3 +42,7 @@ def job_get_dirs(
     os.makedirs(dataset_path, exist_ok=True)
     os.makedirs(model_path, exist_ok=True)
     return base_dir, dataset_path, model_path
+
+def get_files_in_path(path: Path) -> list[str]:
+    # return list of file names in path
+    return [f.name for f in path.iterdir() if f.is_file()]

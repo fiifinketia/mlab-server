@@ -4,42 +4,36 @@ import os
 import subprocess
 from typing import Any
 import uuid
-from concurrent.futures import ProcessPoolExecutor
 from fastapi import HTTPException
-import pymlab as pm
 
 from server.settings import settings
 from server.db.models.datasets import Dataset
 from server.db.models.jobs import Job
 from server.db.models.ml_models import Model
 from server.db.models.results import Result
-from server.services.git import GitService
+import server.services.cog as cg
+
 from server.web.api.utils import job_get_dirs
 
 async def train_model(
-        dataset: Dataset,
-        job: Job,
-        model: Model,
-        result_name: str,
-        user_token: str,
-        parameters: dict[str, Any] = {},
-        dataset_branch: str | None = None,
-        model_branch: str | None = None,
-        # layers: list[Layer] = []
+    dataset: Dataset,
+    job: Job,
+    model: Model,
+    result_name: str,
+    user_token: str,
+    environment_type: str = "docker",
+    parameters: dict[str, Any] = {},
+    dataset_branch: str | None = None,
+    model_branch: str | None = None,
+    # layers: list[Layer] = []
 ) -> Result:
     """Train model with a provided dataset and store results"""
     job_base_dir, dataset_path, model_path = job_get_dirs(job.id, dataset.git_name, model.git_name)
-
-    # Update the config file
-    old_parameters = update_config_file(model_path=model_path, parameters=parameters, dataset_path=dataset_path)
-
-    # Create results directory
     result_id = uuid.uuid4()
-    result_dir = f"{job_base_dir}/{str(result_id)}"
-    os.makedirs(result_dir)
+    results_dir = f"{job_base_dir}/{str(result_id)}"
+    os.makedirs(results_dir)
 
-    files = write_result_config_file(model_path=model_path, dataset_path=dataset_path, result_dir=result_dir, parameters=parameters, old_parameters=old_parameters)
-
+    update_config_file(model_path=model_path, parameters=parameters, results_dir=results_dir)
 
     result = await Result.objects.create(
         id=result_id,
@@ -48,28 +42,30 @@ async def train_model(
         status="running",
         result_type="train",
         owner_id=job.owner_id,
-        files=files,
         parameters=parameters,
         name=result_name,
     )
-
     try:
-        await prepare_environment(job.id, dataset.git_name, model.git_name, dataset_branch, model_branch)
-
-        # Run the script
-        executor = ProcessPoolExecutor()
-
-        executor.submit(
-            pm.run_native_pkg,
-            name="pymlab.train",
-            at=model_path,
-            result_id=result_id,
-            api_url=f"{settings.api_url}/results/submit",
-            user_token=user_token,
-            venv_name=f"{str(job.id)}-venv",
-        )
+        match environment_type:
+            case "docker":
+                try:
+                    await cg.prepare(job_id=job.id, dataset_name=dataset.git_name, model_name=model.git_name)
+                    await cg.run(
+                        name="pymlab.train",
+                        at=model_path,
+                        result_id=result_id,
+                        user_token=user_token,
+                        api_url=f"{settings.cog_internal_api_url}/results/submit",
+                        base_dir=job_base_dir,
+                        dataset_dir=dataset_path,
+                        job_id=job.id
+                    )
+                except subprocess.CalledProcessError as e:
+                    await handle_subprocess_error(results_dir=results_dir, e=e, result=result, job=job)
+            case _:
+                raise HTTPException(status_code=400, detail=f"Error Setting up Environment: {environment_type}")
     except subprocess.CalledProcessError as e:
-        await handle_subprocess_error(result_dir=result_dir, e=e, files=files, result=result, job=job)
+        await handle_subprocess_error(results_dir=results_dir, e=e, result=result, job=job)
     return result
 
 async def test_model(
@@ -78,24 +74,19 @@ async def test_model(
     model: Model,
     result_name: str,
     user_token: str,
+    environment_type: str = "docker",
     parameters: dict[str, Any] = {},
     pretrained_model: str | None = None,
     dataset_branch: str | None = None,
     model_branch: str | None = None,
 ) -> Result:
     """Test model with a provided dataset and store results"""
-
-    # Update the config file
     job_base_dir, dataset_path, model_path = job_get_dirs(job.id, dataset.git_name, model.git_name)
-
-    old_parameters = update_config_file(model_path=model_path, parameters=parameters, dataset_path=dataset_path)
-
-    # Create results directory
     result_id = uuid.uuid4()
-    result_dir = f"{job_base_dir}/{str(result_id)}"
-    os.makedirs(result_dir)
+    results_dir = f"{job_base_dir}/{str(result_id)}"
+    os.makedirs(results_dir)
 
-    files = write_result_config_file(model_path=model_path, dataset_path=dataset_path, result_dir=result_dir, parameters=parameters, old_parameters=old_parameters)
+    update_config_file(model_path=model_path, parameters=parameters, results_dir=results_dir)
 
     result = await Result.objects.create(
         id=result_id,
@@ -104,136 +95,66 @@ async def test_model(
         status="running",
         result_type="test",
         owner_id=job.owner_id,
-        files=files,
         parameters=parameters,
         name=result_name,
     )
 
     # Run the script
-
     try:
-        await prepare_environment(job.id, dataset.git_name, model.git_name, dataset_branch, model_branch)
-        # Run the script
-        trained_model = pretrained_model if pretrained_model is not None else f"{model_path}/{model.default_model}"
-
-
-        executor = ProcessPoolExecutor()
-
-        executor.submit(
-            pm.run_native_pkg,
-            name="pymlab.test",
-            at=model_path,
-            result_id=result_id,
-            api_url=f"{settings.api_url}/results/submit",
-            pretrained_model=trained_model,
-            user_token=user_token,
-            venv_name=f"{str(job.id)}-venv",
-        )
+        match environment_type:
+            case "docker":
+                try:
+                    await cg.prepare(job_id=job.id, dataset_name=dataset.git_name, model_name=model.git_name)
+                    await cg.run(
+                        name="pymlab.test",
+                        at=model_path,
+                        result_id=result_id,
+                        user_token=user_token,
+                        trained_model=pretrained_model,
+                        api_url=f"{settings.cog_internal_api_url}/results/submit",
+                        base_dir=job_base_dir,
+                        dataset_dir=dataset_path,
+                        job_id=job.id
+                    )
+                except subprocess.CalledProcessError as e:
+                    await handle_subprocess_error(results_dir=results_dir, e=e, result=result, job=job)
+            case _:
+                raise HTTPException(status_code=400, detail=f"Error Setting up Environment: {environment_type}")
     except subprocess.CalledProcessError as e:
-        await handle_subprocess_error(result_dir=result_dir, e=e, files=files, result=result, job=job)
+        await handle_subprocess_error(results_dir=results_dir, e=e, result=result, job=job)
     return result
 
-def check_for_venv(venv_name: str) -> bool:
-    """Check if a virtual environment exists"""
-    process = subprocess.run(f"conda env list | grep {venv_name}", shell=True, executable="/bin/bash", check=False, stdout=subprocess.PIPE)
-    if process.returncode == 0:
-        # check if it returns any output
-        if process.stdout is not None:
-            return True
-    return False
-
-def run_install_requirements(
-    model_path: str,
-    job_id: uuid.UUID,
-) -> subprocess.CompletedProcess[bytes]:
-    """Install requirements in a virtual environment using ProcessPoolExecutor"""
-    # Activate the virtual environment
-    venv_name = f"{str(job_id)}-venv"
-    if check_for_venv(venv_name) is False:
-        subprocess.run(f"conda create -n {venv_name} python=3.11 -y", shell=True, executable="/bin/bash", check=True)
-    command = f"""deactivate
-        conda run -n {venv_name} pip install -r {model_path}/requirements.txt
-    """
-    # Run the command
-    return subprocess.run(command, shell=True, executable="/bin/bash", check=True)
-
-async def prepare_environment(
-    job_id: uuid.UUID,
-    dataset_name: str,
-    model_name: str,
-    dataset_branch: str | None = None,
-    model_branch: str | None = None,
-) -> bool:
-    """Prepare the environment for the job"""
-    # Clone Dataset to job_results_dir
-    git = GitService()
-
-    # clone dataset and model to a tmp directory and discard after use
-    _, _, model_path = job_get_dirs(job_id, dataset_name, model_name)
-    # clone specific jobb.repo_hash branch
-    try:
-        git.fetch(repo_name_with_namspace=model_name, to=model_path, branch= model_branch)
-        install_output = run_install_requirements(model_path, job_id)
-        if install_output.returncode != 0:
-            raise subprocess.CalledProcessError(
-                install_output.returncode,
-                install_output.args,
-                "Error running script",
-                install_output.stderr,
-            )
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Error Preparing Environment: {str(e)}")
-
-    return True
-
 async def setup_environment(
-        job_id: uuid.UUID,
-        dataset_name: str,
-        model_name: str,
-        dataset_branch: str | None = None,
-        model_branch: str | None = None,
-    ) -> bool:
-    # Clone Dataset to job_results_dir
-    git = GitService()
-
-    # clone dataset and model to a tmp directory and discard after use
-    _, dataset_path, model_path = job_get_dirs(job_id, dataset_name, model_name)
-    # clone specific jobb.repo_hash branch
-    try:
-        git.clone_repo(repo_name_with_namspace=dataset_name, to=dataset_path, branch= dataset_branch)
-        git.clone_repo(repo_name_with_namspace=model_name, to=model_path, branch= model_branch)
-        run_install_requirements(model_path, job_id)
-    except Exception as e:
-        os.system(f"rm -rf {dataset_path}")
-        os.system(f"rm -rf {model_path}")
-        raise HTTPException(status_code=400, detail=f"Error Setting up Environment: {str(e)}")
-
-    return True
-
-async def run_env_setup_and_save(
     job_id: uuid.UUID,
     dataset_name: str,
     model_name: str,
+    environment_type: str = "docker",
     dataset_branch: str | None = None,
     model_branch: str | None = None,
 ) -> None:
     """Run environment setup and save the results"""
-    try:
-        is_complete = await setup_environment(job_id, dataset_name, model_name, dataset_branch, model_branch)
-        if is_complete:
-            job = await Job.objects.get(id=job_id)
-            job.ready = True
-            job.modified = datetime.datetime.now()
-            await job.update()
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Error Setting up Environment: {str(e)}")
+    is_complete = False
+    match environment_type:
+        case "docker":
+            try:
+                is_complete = await cg.setup(job_id, dataset_name, model_name, dataset_branch, model_branch)
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=f"Error Setting up Environment: {str(e)}") from e
+        case _:
+            raise HTTPException(status_code=400, detail=f"Error Setting up Environment: {environment_type} is not supported")
+    if is_complete:
+        job = await Job.objects.get(id=job_id)
+        job.ready = True
+        job.modified = datetime.datetime.now()
+        await job.update()
+
 
 
 def update_config_file(
     model_path: str,
     parameters: dict[str, Any],
-    dataset_path: str,
-) -> dict[str, Any]:
+    results_dir: str,
+) -> None:
     """Update the config file with new parameters"""
     old_parameters = {}
     with open(f"{model_path}/config.txt", "r") as f:
@@ -260,61 +181,46 @@ def update_config_file(
                 f"PARAM {key} {param_type} {old_parameters[key]}",
                 f"PARAM {key} {param_type} {value}",
             )
-        filedata = filedata.replace(
-            f"PARAM dataset_url str {old_parameters['dataset_url']}",
-            f"PARAM dataset_url str {dataset_path}",
-        )
 
         # Save the updated config file
         with open(f"{model_path}/config.txt", "w") as file:
             file.write(filedata)
-    return old_parameters
+    # copy new parameters to results directory
+    subprocess.run(["cp", f"{model_path}/config.txt", f"{results_dir}/config.txt"])
 
-def write_result_config_file(
-    model_path: str,
-    dataset_path: str,
-    result_dir: str,
-    old_parameters: dict[str, Any],
-    parameters: dict[str, Any],
-) -> list[str]:
-    """Write the config file for the results directory"""
-        # paste config file to results directory also for future reference
-    subprocess.run(
-        f"cp {model_path}/config.txt {result_dir}/config.txt",
-        shell=True,
-        executable="/bin/bash",
-        check=True,
-    )
+def stop_job_processes(job_id: uuid.UUID, environment_type: str = "docker") -> None:
+    """Stop jobs"""
+    match environment_type:
+        case "docker":
+            cg.stop(job_id=job_id)
+        case _:
+            raise HTTPException(status_code=400, detail=f"Error stoping jobs for Environment: {environment_type}")
 
-    # edit config.txt file in results directory and remove the dataset_url line
-    with open(f"{result_dir}/config.txt", "r") as file:
-        filedata = file.read()
-        filedata = filedata.replace(
-            f"PARAM dataset_url str {dataset_path}",
-            "",
-        )
 
-        # Save the updated config file
-        with open(f"{result_dir}/config.txt", "w") as file:
-            file.write(filedata)
+def remove_job_env(job_id: uuid.UUID, dataset_name: str, model_name: str, environment_type: str = "docker") -> None:
+    """Close a job"""
+    # Delete the dataset and model directories
+    match environment_type:
+        case "docker":
+            cg.remove(job_id=job_id, dataset_name=dataset_name, model_name=model_name)
+            cg.remove_docker(job_id=job_id)
+        case _:
+            raise HTTPException(status_code=400, detail=f"Error removing Environment: {environment_type}")
 
-    files = []
-
-    files.append("config.txt")
-
-    for key, value in old_parameters.items():
-        if key == "dataset_url":
-            pass
-        elif parameters.get(key) is None:
-            parameters[key] = value
-
-    parameters["dataset_url"] = "dataset.csv"
-    return files
+async def handle_error(
+    results_dir: str,
+    e: Any,
+    result: Result,
+    job: Job,
+) -> None:
+    if isinstance(e, subprocess.CalledProcessError):
+        await handle_subprocess_error(results_dir, e, result, job)
+    else:
+        await handle_subprocess_error(results_dir, e, result, job)
 
 async def handle_subprocess_error(
-    result_dir: str,
+    results_dir: str,
     e: subprocess.CalledProcessError,
-    files: list[str],
     result: Result,
     job: Job,
 ) -> None:
@@ -327,27 +233,16 @@ async def handle_subprocess_error(
         error_message = str(e)
     # Append error in error.txt file
     # First check if error.txt file exists
-    if not os.path.exists(f"{result_dir}/error.txt"):
-        with open(f"{result_dir}/error.txt", "w", encoding="utf-8") as f:
+    if not os.path.exists(f"{results_dir}/error.txt"):
+        with open(f"{results_dir}/error.txt", "w", encoding="utf-8") as f:
             f.write(error_message)
     else:
-        with open(f"{result_dir}/error.txt", "a", encoding="utf-8") as f:
+        with open(f"{results_dir}/error.txt", "a", encoding="utf-8") as f:
             f.write(error_message)
     # Update the result status
-    files.append("error.txt")
-    result.files = files
     result.status = "error"
     result.modified = datetime.datetime.now()
     job.ready = True
     job.modified = datetime.datetime.now()
     await result.update()
     await job.update()
-
-def remove_job_env(job_id: uuid.UUID, dataset_name: str, model_name: str) -> None:
-    """Close a job"""
-    # Delete the dataset and model directories
-    _, model_path, dataset_path = job_get_dirs(job_id, dataset_name, model_name)
-    venv_name = f"{str(job_id)}-venv"
-    os.system(f"rm -rf {model_path}")
-    os.system(f"rm -rf {dataset_path}")
-    os.system(f"conda remove -n {venv_name} --all -y")

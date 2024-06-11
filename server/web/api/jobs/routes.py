@@ -13,7 +13,7 @@ from server.db.models.jobs import Job
 from server.db.models.ml_models import Model
 from server.db.models.results import Result
 from server.settings import settings
-from server.web.api.jobs.utils import train_model, test_model, run_env_setup_and_save, remove_job_env
+from server.web.api.jobs.utils import setup_environment, stop_job_processes, train_model, test_model, remove_job_env
 
 api_router = APIRouter()
 
@@ -65,6 +65,27 @@ async def get_jobs(req: Request) -> list[Job]:
     # Add results related to job
     return await Job.objects.select_related("results").all(owner_id=user_id)
 
+@api_router.post("/stop", tags=["jobs"], summary="Stop all job processes")
+async def stop_jobs(req: Request, job_id: uuid.UUID) -> None:
+    """Stop a jobs running processes"""
+    user_id = req.state.user_id
+    job = await Job.objects.get(id=job_id)
+    if job.owner_id!= user_id:
+        raise HTTPException(status_code=403, detail=f"User does not have permission to stop job {job_id}")
+    try:
+        stop_job_processes(job_id)
+        job.ready = True
+        job.modified = datetime.datetime.now()
+        await job.update()
+        # update jobb results with status running
+        job_results_running = await Result.objects.filter(job=job, status="running").all()
+        for result in job_results_running:
+            result.status = "stopped"
+            result.modified = datetime.datetime.now()
+            await result.update()
+    except:
+        HTTPException(status_code=400, detail=f"Failed to stop job {job_id}")
+
 @api_router.post("/close", tags=["jobs"], summary="Close a job")
 async def close_job(
     job_id: uuid.UUID,
@@ -80,6 +101,10 @@ async def close_job(
     # Close job
     dataset = await Dataset.objects.get(id=job.dataset_id)
     model = await Model.objects.get(id=job.model_id)
+    # check if job has any of its results with status running
+    job_results_running = await Result.objects.filter(job=job, status="running").all()
+    if len(job_results_running) > 0:
+        raise HTTPException(status_code=400, detail=f"Job {job_id} has running processes, please stop them first")
     try:
         remove_job_env(job_id=job_id, dataset_name=dataset.git_name, model_name=model.git_name)
     except:
@@ -138,7 +163,7 @@ async def create_job(
     )
     # Setup Enviroment for job
     asyncio.create_task(
-        run_env_setup_and_save(
+        setup_environment(
             job_id=job_id,
             model_name=model.git_name,
             dataset_name=dataset.git_name,

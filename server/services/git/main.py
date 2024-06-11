@@ -143,6 +143,7 @@ class GitService:
     def fetch(self, repo_name_with_namspace: str, to: str, branch: str | None = None) -> None:
         """Clone a repository."""
         # check if the repository has been cloned already
+        self.stash(repo_name_with_namspace=repo_name_with_namspace, to=to)
         if self.check_exists(repo_name=repo_name_with_namspace):
             os.system(f"git config --global user.email disal@admin.git")
             os.system(f"git config --global user.name disal")
@@ -150,3 +151,12 @@ class GitService:
             os.system(f"GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=no' git pull origin {branch if branch is not None else 'main'}")
         else:
             raise RepoNotFoundError(f"Repository '{repo_name_with_namspace}' does not exist.")
+
+    def stash(self, repo_name_with_namspace: str, to: str) -> None:
+        """Clone a repository."""
+        # check if the repository has been cloned already
+        if self.check_exists(repo_name=repo_name_with_namspace):
+            os.system(f"git config --global user.email disal@admin.git")
+            os.system(f"git config --global user.name disal")
+            os.chdir(to)
+            os.system("git stash")
