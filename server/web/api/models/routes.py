@@ -97,7 +97,7 @@ async def create_model(
             private=create_model_request.private,
         )
     except RepoNotFoundError:
-        raise HTTPException(status_code=404, detail="Repository not found")
+        raise HTTPException(status_code=400, detail="Repository not created")
     return model
 
 @api_router.delete("/{model_id}", tags=["models"], summary="Delete a model")

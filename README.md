@@ -154,7 +154,7 @@ For running tests on your local machine.
 
 I prefer doing it with docker:
 ```
-docker run -p "5432:5432" -e "POSTGRES_PASSWORD=mlab@123" -e "POSTGRES_USER=mlab" -e "POSTGRES_DB=mlab" postgres:13.8-bullseye
+docker run -d -p "5432:5432" -e "POSTGRES_PASSWORD=mlab@123" -e "POSTGRES_USER=mlab" -e "POSTGRES_DB=mlab" postgres:13.8-bullseye
 ```
 
 
@@ -178,7 +178,7 @@ cd /var/www/mlab/server/
 git pull
 cd ~/Projects/MLab/mlab-server/
 
-
+sudo docker-compose -f deploy/docker-compose-db.yml --project-directory . up -d
 
 docker-compose -f deploy/docker-compose.yml --project-directory . run --rm alembic merge heads 
 docker-compose -f deploy/docker-compose.yml --project-directory . run --rm alembic merge heads --force
