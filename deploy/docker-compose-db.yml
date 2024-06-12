@@ -1,0 +1,22 @@
+# docker run -d -p "5432:5432" -e "POSTGRES_PASSWORD=mlab@123" -e "POSTGRES_USER=mlab" -e "POSTGRES_DB=mlab" postgres:13.8-bullseye
+
+services:
+  psql:
+    image: postgres:13.8-bullseye
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASS?:DB_PASS not set}
+      POSTGRES_USER: ${DB_USER?:not set}
+      POSTGRES_DB: ${DB_BASE?:not set}
+    healthcheck:
+      test: pg_isready -U mlab -d mlab
+      interval: 1s
+      timeout: 3s
+      retries: 50
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
