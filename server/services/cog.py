@@ -64,6 +64,7 @@ def build_cli_script(
 
 def run_process_with_std(run_script: str, stdout_file_path: Path, at: str) -> None:
     """Run a process with stderr and stdout"""
+    print(run_script)
     with stdout_file_path.open("wb") as stdout_file:
         subprocess.run(run_script, stdout=stdout_file, stderr=subprocess.STDOUT,cwd=at, shell=True, executable="/bin/bash", check=True)
 

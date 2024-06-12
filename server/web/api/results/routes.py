@@ -1,4 +1,5 @@
 """Routes for results."""
+import asyncio
 import datetime
 import os
 from pathlib import Path
@@ -7,7 +8,7 @@ import zipfile
 import json
 from typing import Any
 import starlette
-from fastapi import APIRouter, HTTPException, Request, UploadFile
+from fastapi import APIRouter, HTTPException, Request, UploadFile, WebSocket
 from fastapi.responses import FileResponse
 from pydantic import BaseModel # pylint: disable=no-name-in-module
 from server.db.models.datasets import Dataset
@@ -71,12 +72,13 @@ class ResultResponse(BaseModel):
     dataset_description: str
 
 
-@api_router.get("/{result_id}", tags=["results"], summary="Get a result")
-async def get_result(result_id: str) -> ResultResponse:
+@api_router.get("/{result_id}", tags=["results"], summary="Get a result", response_model=ResultResponse)
+async def get_result(result_id: str, req: Request) -> ResultResponse:
     """Get a result."""
     uuid_result_id = uuid.UUID(result_id)
+    user_id = req.state.user_id
     # INtiialize result as type Result and size as int
-    result = await Result.objects.select_related("job").get(id=uuid_result_id)
+    result = await Result.objects.select_related("job").get(id=uuid_result_id, owner_id=user_id)
     model = await Model.objects.get(id=result.job.model_id)
     dataset = await Dataset.objects.get(id=result.dataset_id)
     files: list[ResultResponse.FileResponse] = []
@@ -120,10 +122,11 @@ async def submit_pm_results(
     error: bool = False,
 ) -> None:
     """Submit training results for a job."""
+    user_id = request.state.user_id
     result: Result
     form = await request.form()
     result_id: uuid.UUID = uuid.UUID(form["result_id"]) # type: ignore
-    result = await Result.objects.select_related("job").get(id=result_id)
+    result = await Result.objects.select_related("job").get(id=result_id, owner_id=user_id)
     if result is None:
         raise HTTPException(
             status_code=404,
@@ -176,10 +179,12 @@ async def submit_pm_results(
 @api_router.get("/download/{result_id}", tags=["results"], summary="Download a result")
 async def zip_files_for_download(
     result_id: str,
+    req: Request
 ) -> Any:
     """Download a result."""
+    user_id = req.state.user_id
     result_uuid = uuid.UUID(result_id)
-    result = await Result.objects.select_related("job").get(id=result_uuid)
+    result = await Result.objects.select_related("job").get(id=result_uuid, owner_id=user_id)
     jobs_base_dir, _, _ = job_get_dirs(result.job.id, "", "")
     result_dir = Path(f"{jobs_base_dir}/{str(result_id)}")
     if result is None:
@@ -201,12 +206,35 @@ async def zip_files_for_download(
 async def download_file(
     result_id: str,
     file_name: str,
+    req: Request
 ) -> Any:
     """Download a file from a result."""
+    user_id = req.state.user_id
     result_uuid = uuid.UUID(result_id)
-    result = await Result.objects.select_related("job").get(id=result_uuid)
+    result = await Result.objects.select_related("job").get(id=result_uuid, owner_id=user_id)
     if result is None:
         raise HTTPException(status_code=404, detail=f"Result {result_id} not found")
     jobs_base_dir, _, _ = job_get_dirs(result.job.id, "", "")
     file_path = Path(f"{jobs_base_dir}/{str(result_id)}/{file_name}")
     return FileResponse(file_path, filename=file_name)
+
+# @api_router.get("/stream/{result_id}/{file_name}")
+# async def stream_file(
+#     result_id: str,
+#     file_name: str,
+#     websocket: WebSocket,
+#     req: Request,
+# ) -> None:
+#     """Stream a file from a result."""
+#     user_id = req.state.user_id
+#     result_uuid = uuid.UUID(result_id)
+#     result = await Result.objects.select_related("job").get(id=result_uuid, owner_id=user_id)
+#     if result is None:
+#         raise HTTPException(status_code=404, detail=f"Result {result_id} not found")
+#     jobs_base_dir, _, _ = job_get_dirs(result.job.id, "", "")
+#     file_path = Path(f"{jobs_base_dir}/{str(result_id)}/{file_name}")
+#     await websocket.accept()
+#     while True:
+#         await asyncio.sleep(0.1)
+#         payload = next(file_path.open("r"))
+#         await websocket.send_json(payload)
