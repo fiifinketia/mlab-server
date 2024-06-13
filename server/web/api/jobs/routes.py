@@ -63,7 +63,7 @@ async def get_jobs(req: Request) -> list[Job]:
     if user_id is None:
         return await Job.objects.select_related("results").all()
     # Add results related to job
-    return await Job.objects.select_related("results").all(owner_id=user_id)
+    return await Job.objects.select_related("results").all(owner_id=user_id, close=False)
 
 @api_router.post("/stop", tags=["jobs"], summary="Stop all job processes")
 async def stop_jobs(req: Request, job_id: uuid.UUID) -> None:
