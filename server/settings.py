@@ -45,6 +45,8 @@ class Settings(BaseSettings):
 
     x_api_key: str = os.getenv("X_API_KEY", "")
 
+    image_storage: str = os.getenv("IMAGE_STORAGE", "/var/lib/docker/volumes/filez/images")
+
     # Current environment
     environment: str = os.getenv("ENVIRONMENT", "dev")
     log_level: LogLevel = LogLevel.INFO

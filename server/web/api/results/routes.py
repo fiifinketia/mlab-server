@@ -139,7 +139,7 @@ async def submit_pm_results(
             if type(value) == starlette.datastructures.UploadFile:
                 job_base_dir, _, _ = job_get_dirs(result.job.id, "", "")
                 file_path = Path(f"{job_base_dir}/{str(result_id)}/{value.filename}")
-                os.makedirs(file_path)
+                os.makedirs(file_path.parent, exist_ok=True)
                 with open(file_path, "wb") as f:
                     f.write(value.file.read())
 
@@ -162,7 +162,7 @@ async def submit_pm_results(
                 file_name = value.filename if value.filename is not None else key
                 job_base_dir, _, _ = job_get_dirs(result.job.id, "", "")
                 file_path = Path(f"{job_base_dir}/{str(result_id)}/{file_name}")
-                os.makedirs(file_path, exist_ok=True)
+                os.makedirs(file_path.parent, exist_ok=True)
                 with file_path.open("wb") as f:
                     f.write(value.file.read())
         result.metrics = metrics

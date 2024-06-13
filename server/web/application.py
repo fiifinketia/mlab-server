@@ -44,6 +44,8 @@ def get_app() -> FastAPI:
     async def check_auth(request: Request, call_next: Any) -> Any:
         if request.method == "OPTIONS":
             return await call_next(request)
+        if request.url.path.endswith("/api/models") and request.method == "GET":
+            return await call_next(request)
         if request.url.path.startswith("/api/docs") or request.url.path.startswith("/api/health") or request.url.path.startswith("/api/openapi.json"):
             return await call_next(request)
         credentials = request.headers.get("Authorization")

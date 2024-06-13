@@ -14,7 +14,7 @@ api_router = APIRouter()
 class UpdateKeyRequest(BaseModel):
     public_key: str
 
-@api_router.post("/ssh_key")
+@api_router.post("/ssh_key", tags=["iam"])
 async def gen_key_pair(req: Request, rbody: UpdateKeyRequest) -> UserKeyPair:
     """Generate a new key pair for a user."""
     user_id = req.state.user_id
@@ -39,7 +39,7 @@ async def gen_key_pair(req: Request, rbody: UpdateKeyRequest) -> UserKeyPair:
     )
     return key
 
-@api_router.get("/ssh_key")
+@api_router.get("/ssh_key", tags=["iam"])
 async def get_key_pair(req: Request) -> UserKeyPair:
     """Get the key pair for a user."""
     user_id = req.state.user_id
