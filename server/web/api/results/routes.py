@@ -138,7 +138,8 @@ async def submit_pm_results(
             # error file is a file with name error.txt
             if type(value) == starlette.datastructures.UploadFile:
                 job_base_dir, _, _ = job_get_dirs(result.job.id, "", "")
-                file_path = f"{job_base_dir}/{str(result_id)}/{value.filename}"
+                file_path = Path(f"{job_base_dir}/{str(result_id)}/{value.filename}")
+                os.makedirs(file_path)
                 with open(file_path, "wb") as f:
                     f.write(value.file.read())
 
@@ -160,8 +161,9 @@ async def submit_pm_results(
             elif isinstance(value, starlette.datastructures.UploadFile):
                 file_name = value.filename if value.filename is not None else key
                 job_base_dir, _, _ = job_get_dirs(result.job.id, "", "")
-                file_path = f"{job_base_dir}/{str(result_id)}/{file_name}"
-                with open(file_path, "wb") as f:
+                file_path = Path(f"{job_base_dir}/{str(result_id)}/{file_name}")
+                os.makedirs(file_path, exist_ok=True)
+                with file_path.open("wb") as f:
                     f.write(value.file.read())
         result.metrics = metrics
         result.status = "done"
