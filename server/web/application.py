@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import UJSONResponse
 from fastapi.security import HTTPBearer
 
+from server.db.models.ml_models import Model
 from server.services.auth_bearer import JWTPayload, verify_jwt
 from server.settings import settings
 from server.web.api.router import api_router
@@ -44,8 +45,6 @@ def get_app() -> FastAPI:
     async def check_auth(request: Request, call_next: Any) -> Any:
         if request.method == "OPTIONS":
             return await call_next(request)
-        if request.url.path.endswith("/api/models") and request.method == "GET":
-            return await call_next(request)
         if request.url.path.startswith("/api/docs") or request.url.path.startswith("/api/health") or request.url.path.startswith("/api/openapi.json"):
             return await call_next(request)
         credentials = request.headers.get("Authorization")
@@ -83,5 +82,10 @@ def get_app() -> FastAPI:
 
     # Main router for the API.
     app.include_router(router=api_router, prefix="/api")
+
+    @app.get("/api/projects", tags=["projects"])
+    async def get_projects(req: Request) -> Any:
+        """Get all projects."""
+        return await Model.objects.all()
 
     return app
