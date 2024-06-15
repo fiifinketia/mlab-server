@@ -51,5 +51,4 @@ def get_files_in_path(path: Path) -> list[str]:
             # remove file parent directory from path
             filepath = os.path.relpath(os.path.join(root, f), path)
             files.append(filepath)
-    print(files)
     return files
