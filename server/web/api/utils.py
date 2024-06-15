@@ -48,6 +48,8 @@ def get_files_in_path(path: Path) -> list[str]:
     files = []
     for root, _, file in os.walk(path):
         for f in file:
-            files.append(os.path.join(root, f))
+            # remove file parent directory from path
+            filepath = os.path.relpath(os.path.join(root, f), path)
+            files.append(filepath)
     print(files)
     return files
