@@ -45,4 +45,6 @@ def job_get_dirs(
 
 def get_files_in_path(path: Path) -> list[str]:
     # return list of file names in path
-    return [f.name for f in path.iterdir() if f.is_file()]
+    files = [f.name for f in path.iterdir() if f.is_file()]
+    print(files)
+    return files

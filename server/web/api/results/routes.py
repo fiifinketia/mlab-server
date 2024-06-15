@@ -86,9 +86,9 @@ async def get_result(result_id: str, req: Request) -> ResultResponse:
     result_dir = Path(f"{jobs_base_dir}/{str(result_id)}")
     if result is None:
         raise HTTPException(status_code=404, detail=f"Result {result_id} not found")
-    result_size = 0
     result_files = get_files_in_path(result_dir)
     for file in result_files:
+        result_size = 0
         file_response = ResultResponse.FileResponse(
             name=file,
             size=os.path.getsize(result_dir),
