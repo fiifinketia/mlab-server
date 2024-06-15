@@ -87,11 +87,11 @@ async def get_result(result_id: str, req: Request) -> ResultResponse:
     if result is None:
         raise HTTPException(status_code=404, detail=f"Result {result_id} not found")
     result_files = get_files_in_path(result_dir)
+    result_size = 0
     for file in result_files:
-        result_size = 0
         file_response = ResultResponse.FileResponse(
             name=file,
-            size=os.path.getsize(result_dir),
+            size=os.path.getsize(f"{result_dir}/{file}"), # type: ignore
         )
         files.append(file_response)
         result_size += os.path.getsize(result_dir)
