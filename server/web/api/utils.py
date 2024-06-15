@@ -44,7 +44,10 @@ def job_get_dirs(
     return base_dir, dataset_path, model_path
 
 def get_files_in_path(path: Path) -> list[str]:
-    # return list of file names in path
-    files = [f.name for f in path.iterdir() if f.is_file()]
+    # get all files and files in subdirectories in path
+    files = []
+    for root, _, file in os.walk(path):
+        for f in file:
+            files.append(os.path.join(root, f))
     print(files)
     return files
