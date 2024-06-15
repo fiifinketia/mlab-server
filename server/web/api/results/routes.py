@@ -89,12 +89,13 @@ async def get_result(result_id: str, req: Request) -> ResultResponse:
     result_files = get_files_in_path(result_dir)
     result_size = 0
     for file in result_files:
+        size = os.path.getsize(f"{result_dir}/{file}")
         file_response = ResultResponse.FileResponse(
             name=file,
             size=os.path.getsize(f"{result_dir}/{file}"), # type: ignore
         )
         files.append(file_response)
-        result_size += os.path.getsize(result_dir)
+        result_size += size
     result_response = ResultResponse(
         size=result_size,
         id=result.id,
