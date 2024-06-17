@@ -40,6 +40,7 @@ async def train_model(
         id=result_id,
         job=job,
         dataset_id=dataset.id,
+        dataset_type="default",
         status="running",
         result_type="train",
         owner_id=job.owner_id,
@@ -96,8 +97,8 @@ async def test_model(
     result = await Result.objects.create(
         id=result_id,
         job=job,
-        dataset_id=job.dataset_id if dataset_type == 'default' else None,
-        dataset_path=dataset_path if dataset_type == 'upload' else None,
+        dataset_id=job.dataset_id,
+        dataset_type=dataset_type,
         status="running",
         result_type="test",
         owner_id=job.owner_id,

@@ -3,7 +3,7 @@ import datetime
 from enum import Enum
 import os
 from pathlib import Path
-from typing import Annotated, Any, Coroutine, Optional
+from typing import Annotated, Any, Optional
 import uuid
 
 import asyncio
@@ -267,7 +267,7 @@ async def run_test_model(
             dataset = await Dataset.objects.get(id=job.dataset_id, private=True, owner_id=user_id)
             if dataset is None:
                 raise HTTPException(status_code=404, detail=f"Dataset {job.dataset_id} not found")
-        dataset_path = job_get_dirs(job_id=job.id, dataset_name=dataset.git_name, model_name="")
+        _,dataset_path,_ = job_get_dirs(job_id=job.id, dataset_name=dataset.git_name, model_name="")
     else:
         _,dataset_path,_ = job_get_dirs(job_id=job.id, dataset_name=str(test_model_in.dataset.path), model_name="")
 

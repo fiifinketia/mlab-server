@@ -30,7 +30,7 @@ class Result(ormar.Model):
     # Foreign key to job
     job = ormar.ForeignKey(Job)
     dataset_id: uuid.UUID = ormar.UUID(nullable=True)
-    dataset_path: str = ormar.UUID(nullable=True)
+    dataset_type: str = ormar.String(max_length=20, nullable=True)
     # path: str = ormar.String(max_length=300)
     status: str = ormar.String(max_length=300)
     created: datetime.datetime = ormar.DateTime(default=datetime.datetime.now)
