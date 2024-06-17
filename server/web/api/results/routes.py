@@ -70,6 +70,7 @@ class ResultResponse(BaseModel):
     model_description: str
     dataset_name: str
     dataset_description: str
+    pretrained_model: str
 
 
 @api_router.get("/{result_id}", tags=["results"], summary="Get a result", response_model=ResultResponse)
@@ -114,6 +115,7 @@ async def get_result(result_id: str, req: Request) -> ResultResponse:
         model_description=model.description,
         dataset_name=dataset.name,
         dataset_description=dataset.description,
+        pretrained_model=result.pretrained_model,
     )
     return result_response
 
@@ -205,7 +207,7 @@ async def zip_files_for_download(
     zip_file.close()
     return FileResponse(zip_file_path, filename=f"{result_id}.zip", media_type="application/zip")
 
-@api_router.get("/download/{result_id}/{file_name}", tags=["results"], summary="Download a file from a result")
+@api_router.get("/download/{result_id}/{file_name:path}", tags=["results"], summary="Download a file from a result")
 async def download_file(
     result_id: str,
     file_name: str,
