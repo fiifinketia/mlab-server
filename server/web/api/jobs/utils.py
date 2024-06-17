@@ -32,8 +32,9 @@ async def train_model(
     result_id = uuid.uuid4()
     results_dir = f"{job_base_dir}/{str(result_id)}"
     os.makedirs(results_dir)
+    config_path = f"{model_path}/config.train.txt"
 
-    update_config_file(model_path=model_path, parameters=parameters, results_dir=results_dir)
+    update_config_file(config_path=config_path, parameters=parameters, results_dir=results_dir)
 
     result = await Result.objects.create(
         id=result_id,
@@ -45,11 +46,12 @@ async def train_model(
         parameters=parameters,
         name=result_name,
     )
+
     try:
         match environment_type:
             case "docker":
                 try:
-                    await cg.prepare(job_id=job.id, dataset_name=dataset.git_name, model_name=model.git_name)
+                    await cg.prepare(job_id=job.id, dataset_name=dataset.git_name, model_name=model.git_name, dataset_type="default")
                     await cg.run(
                         name="pymlab.train",
                         at=model_path,
@@ -69,11 +71,13 @@ async def train_model(
     return result
 
 async def test_model(
-    dataset: Dataset,
+    dataset_path: str,
     job: Job,
     model: Model,
     result_name: str,
     user_token: str,
+    dataset_type: str,
+    model_type: str,
     environment_type: str = "docker",
     parameters: dict[str, Any] = {},
     pretrained_model: str | None = None,
@@ -81,17 +85,19 @@ async def test_model(
     model_branch: str | None = None,
 ) -> Result:
     """Test model with a provided dataset and store results"""
-    job_base_dir, dataset_path, model_path = job_get_dirs(job.id, dataset.git_name, model.git_name)
+    job_base_dir, _, model_path = job_get_dirs(job.id, "", model.git_name)
     result_id = uuid.uuid4()
     results_dir = f"{job_base_dir}/{str(result_id)}"
     os.makedirs(results_dir)
+    config_path = f"{model_path}/config.test.txt"
 
-    update_config_file(model_path=model_path, parameters=parameters, results_dir=results_dir)
+    update_config_file(config_path=config_path, parameters=parameters, results_dir=results_dir)
 
     result = await Result.objects.create(
         id=result_id,
         job=job,
-        dataset_id=dataset.id,
+        dataset_id=job.dataset_id if dataset_type == 'default' else None,
+        dataset_path=dataset_path if dataset_type == 'upload' else None,
         status="running",
         result_type="test",
         owner_id=job.owner_id,
@@ -99,12 +105,26 @@ async def test_model(
         name=result_name,
     )
 
+    if dataset_type == 'upload':
+        dataset_name = dataset_path
+    elif dataset_type == 'default':
+        dataset = await Dataset.objects.get(id=job.dataset_id)
+        dataset_name = dataset.git_name
+    else:
+        raise NotImplementedError(f"Dataset type {dataset_type} is not supported")
+
     # Run the script
     try:
         match environment_type:
             case "docker":
                 try:
-                    await cg.prepare(job_id=job.id, dataset_name=dataset.git_name, model_name=model.git_name)
+                    await cg.prepare(
+                        job_id=job.id,
+                        dataset_type=dataset_type,
+                        model_name=model.git_name,
+                        dataset_name=dataset_name,
+                        results_dir=results_dir,
+                    )
                     await cg.run(
                         name="pymlab.test",
                         at=model_path,
@@ -113,7 +133,7 @@ async def test_model(
                         trained_model=pretrained_model,
                         api_url=f"{settings.cog_internal_api_url}/results/submit",
                         base_dir=job_base_dir,
-                        dataset_dir=dataset_path,
+                        dataset_dir=dataset_path if dataset_type == "default" else results_dir,
                         job_id=job.id
                     )
                 except subprocess.CalledProcessError as e:
@@ -151,13 +171,13 @@ async def setup_environment(
 
 
 def update_config_file(
-    model_path: str,
+    config_path: str,
     parameters: dict[str, Any],
     results_dir: str,
 ) -> None:
     """Update the config file with new parameters"""
     old_parameters = {}
-    with open(f"{model_path}/config.txt", "r") as f:
+    with open(config_path, "r") as f:
         lines = f.readlines()
         for line in lines:
             if line[0] == ";":
@@ -170,7 +190,7 @@ def update_config_file(
                 if args[0] == "PARAM":
                     old_parameters[args[1]] = args[3].strip()
 
-    with open(f"{model_path}/config.txt", "r") as file:
+    with open(config_path, "r") as file:
         filedata = file.read()
         # Replace the entire PARAM dataset_url line with the new dataset path,
         # the dataset path in the config is un
@@ -183,10 +203,11 @@ def update_config_file(
             )
 
         # Save the updated config file
-        with open(f"{model_path}/config.txt", "w") as file:
+        with open(config_path, "w") as file:
             file.write(filedata)
     # copy new parameters to results directory
-    subprocess.run(["cp", f"{model_path}/config.txt", f"{results_dir}/config.txt"])
+    results_config_path = f"{results_dir}/{config_path.split('/')[-1]}"
+    subprocess.run(["cp", config_path, results_config_path])
 
 def stop_job_processes(job_id: uuid.UUID, environment_type: str = "docker") -> None:
     """Stop jobs"""

@@ -26,3 +26,4 @@ class Model(ormar.Model):
     parameters: dict[str, Any] = ormar.JSON(default={})
     # layers: list[dict[str, Any]] = ormar.JSON(default=[])
     private: bool = ormar.Boolean(default=False)
+    default_model: str = ormar.String(max_length=200, nullable=True)

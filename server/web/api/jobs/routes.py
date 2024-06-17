@@ -1,11 +1,14 @@
 """Routes for jobs API."""
 import datetime
+from enum import Enum
 import os
-from typing import Any, Coroutine, Optional
+from pathlib import Path
+from typing import Annotated, Any, Coroutine, Optional
 import uuid
 
 import asyncio
-from fastapi import APIRouter, HTTPException, Request
+import aiofiles
+from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 from pydantic import BaseModel
 
 from server.db.models.datasets import Dataset
@@ -14,8 +17,11 @@ from server.db.models.ml_models import Model
 from server.db.models.results import Result
 from server.settings import settings
 from server.web.api.jobs.utils import setup_environment, stop_job_processes, train_model, test_model, remove_job_env
+from server.web.api.utils import job_get_dirs
 
 api_router = APIRouter()
+
+CHUNK_SIZE = 1024 * 1024  # adjust the chunk size as desired
 
 class JobWithResults(Job):
     """Job with results"""
@@ -37,23 +43,35 @@ class TrainModelIn(BaseModel):
     """Train model in"""
 
     job_id: uuid.UUID
-    user_id: str
     parameters: dict[str, Any] = {}
     name: str
     model_branch: str | None = None
     dataset_branch: str | None = None
 
+class ModelType(str,Enum):
+    default = "default"
+    pretrained = "pretrained"
+    custom = "custom"
+
+class DatasetType(str,Enum):
+    default = "default"
+    upload = "upload"
+class UseModel(BaseModel):
+    type: ModelType
+    result_id: Optional[str]
+    branch: Optional[str]
+
+class UseDataset(BaseModel):
+    type: DatasetType
+    branch: Optional[str]
+    path: Optional[str]
 class TestModelIn(BaseModel):
     """Test model in"""
-
-    job_id: uuid.UUID
-    user_id: str
-    dataset_id: uuid.UUID
-    parameters: dict[str, Any] = {}
-    use_train_result_id: Optional[uuid.UUID] = None
     name: str
-    model_branch: str | None = None
-    dataset_branch: str | None = None
+    job_id: uuid.UUID
+    parameters: dict[str, Any] = {}
+    model: UseModel
+    dataset: UseDataset
 
 
 @api_router.get("", tags=["jobs"], summary="Get all jobs", response_model=list[Job])
@@ -205,6 +223,30 @@ async def run_train_model(
     await job.update()
     return "Training model"
 
+@api_router.post("/{job_id}/upload/test", tags=["jobs", "models", "results"], summary="Upload test data for model")
+async def upload_test_data(
+    file: Annotated[UploadFile, File(description="Test data file")],
+    job_id: uuid.UUID,
+) -> str:
+    """Upload test data for model."""
+    dataset_id = uuid.uuid4()
+    filename = file.filename
+    if filename is None:
+        raise HTTPException(status_code=400, detail="No file provided")
+    _, dataset_dir, _ = job_get_dirs(job_id=job_id, dataset_name=str(dataset_id), model_name="")
+    filepath = Path(f"{dataset_dir}/{filename}")
+    try:
+        async with aiofiles.open(filepath, "wb") as buffer:
+            while chunk := await file.read(CHUNK_SIZE):
+                await buffer.write(chunk)
+    # Catch any errors and delete the file
+    except Exception as e:
+        os.remove(filepath)
+        raise HTTPException(status_code=500, detail=str(e)) from e
+    finally:
+        await file.close()
+    return str(dataset_id)
+
 @api_router.post("/test", tags=["jobs", "models", "results"], summary="Run job to test model")
 async def run_test_model(
     test_model_in: TestModelIn,
@@ -214,49 +256,52 @@ async def run_test_model(
     user_id = req.state.user_id
     user_token = req.state.user_token
     # Check if job is ready
-    job = await Job.objects.get(id=test_model_in.job_id)
+    job = await Job.objects.get(id=test_model_in.job_id, owner_id=user_id)
     if not job.ready:
         raise HTTPException(status_code=400, detail=f"Job {test_model_in.job_id} is not ready")
-    dataset = await Dataset.objects.get(id=test_model_in.dataset_id, private=False)
-    if dataset is None and user_id is not None:
-        dataset = await Dataset.objects.get(id=test_model_in.dataset_id, private=True, owner_id=user_id)
-    if dataset is None:
-        raise HTTPException(status_code=404, detail=f"Dataset {test_model_in.dataset_id} not found")
     job = await Job.objects.get(id=test_model_in.job_id)
-    model = await Model.objects.get(id=job.model_id)
 
-    model_path = None
-    if test_model_in.use_train_result_id is not None:
-        train_result = await Result.objects.get(id=test_model_in.use_train_result_id)
-        model_path = settings.results_dir + "/" + train_result.pretrained_model
-
-    # Check dataset type or structure
-    # TODO: Check dataset type or structure
-    if model_path is None:
-        loop = asyncio.get_event_loop()
-        loop.create_task(test_model(
-            dataset=dataset,
-            job=job,
-            model=model,
-            result_name=test_model_in.name,
-            parameters=test_model_in.parameters,
-            dataset_branch=test_model_in.dataset_branch,
-            model_branch=test_model_in.model_branch,
-            user_token=user_token
-        ))
+    if test_model_in.dataset.path is None:
+        dataset = await Dataset.objects.get(id=job.dataset_id, private=False)
+        if dataset is None and user_id is not None:
+            dataset = await Dataset.objects.get(id=job.dataset_id, private=True, owner_id=user_id)
+            if dataset is None:
+                raise HTTPException(status_code=404, detail=f"Dataset {job.dataset_id} not found")
+        dataset_path = job_get_dirs(job_id=job.id, dataset_name=dataset.git_name, model_name="")
     else:
-        loop = asyncio.get_event_loop()
-        loop.create_task(test_model(
-            dataset=dataset,
-            job=job,
-            model=model,
-            result_name=test_model_in.name,
-            parameters=test_model_in.parameters,
-            pretrained_model=model_path,
-            dataset_branch=test_model_in.dataset_branch,
-            model_branch=test_model_in.model_branch,
-            user_token=user_token
-        ))
+        _,dataset_path,_ = job_get_dirs(job_id=job.id, dataset_name=str(test_model_in.dataset.path), model_name="")
+
+    match test_model_in.model.type:
+        case ModelType.default:
+            model = await Model.objects.get(id=job.model_id, private=False)
+            if model is None and user_id is not None:
+                model = await Model.objects.get(id=job.model_id, private=True, owner_id=user_id)
+                if model is None:
+                    raise HTTPException(status_code=404, detail=f"Model {job.model_id} not found")
+            _,_,model_path = job_get_dirs(job_id=job.id, dataset_name="", model_name=model.git_name)
+            pretrained_model_path = f"{model_path}/{model.default_model}"
+        case ModelType.pretrained:
+            train_result = await Result.objects.get(id=test_model_in.model.result_id)
+            job_base_dir,_,_ = job_get_dirs(job_id=job.id, dataset_name="", model_name="")
+            pretrained_model_path = f"{job_base_dir}/{str(train_result.id)}/{train_result.pretrained_model}"
+        case ModelType.custom:
+            # model = await Model.objects.get(id=job.model_id)
+            # pretrained_model_path = settings.results_dir + "/" + model.path
+            raise HTTPException(status_code=400, detail="Custom model not supported yet")
+    loop = asyncio.get_event_loop()
+    loop.create_task(test_model(
+        dataset_path=dataset_path,
+        job=job,
+        model=model,
+        result_name=test_model_in.name,
+        parameters=test_model_in.parameters,
+        pretrained_model=pretrained_model_path,
+        dataset_branch=test_model_in.dataset.branch,
+        model_branch=test_model_in.model.branch,
+        user_token=user_token,
+        dataset_type=test_model_in.dataset.type,
+        model_type=test_model_in.model.type,
+    ))
     job.ready = False
     job.modified = datetime.datetime.now()
     await job.update()
