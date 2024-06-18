@@ -70,7 +70,7 @@ class ResultResponse(BaseModel):
     model_description: str
     dataset_name: str
     dataset_description: str
-    pretrained_model: str
+    pretrained_model: str | None
 
 
 @api_router.get("/{result_id}", tags=["results"], summary="Get a result", response_model=ResultResponse)
