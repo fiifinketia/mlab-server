@@ -48,7 +48,7 @@ def get_app() -> FastAPI:
     # )
     @app.middleware("http")
     async def file_validator(request: Request, call_next: Any) -> Any:
-        return file_upload_middleware(request, call_next)
+        return await file_upload_middleware(request, call_next)
 
     @app.middleware("http")
     async def check_auth(request: Request, call_next: Any) -> Any:
