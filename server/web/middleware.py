@@ -71,8 +71,12 @@ class ValidateUploadFileMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         if request.method == 'POST':
             form = await request.form()
-            content_type = form[next(iter(form))].content_type
-            if content_type not in self.file_types:
+            file = form.get('file')
+            if file is None:
+                return Response(status_code=status.HTTP_400_BAD_REQUEST)
+            if isinstance(file, str):
+                raise NotImplementedError("This middleware does not support file str")
+            if file.content_type not in self.file_types:
                 return Response(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
             if 'content-length' not in request.headers:
                 return Response(status_code=status.HTTP_411_LENGTH_REQUIRED)
