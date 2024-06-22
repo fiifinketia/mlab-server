@@ -1,8 +1,8 @@
+from typing import Any, List
 from fastapi import status
 from starlette.responses import Response
 from starlette.requests import Request
-from starlette.middleware.base import RequestResponseEndpoint
-from typing import List
+]from typing import List
 from enum import Enum
 
 
@@ -59,9 +59,18 @@ class FileTypeName(str, Enum):
 
 FILE_TYPES: List[str] = FileTypeName.list()
 MAX_SIZE: int = 50_000_000
+UPLOAD_FILE_PATHS: List[str] = ['/api/jobs/upload']
 
-async def file_upload_middleware(request: Request, call_next: RequestResponseEndpoint) -> Response:
-    if request.method == 'POST':
+def check_upload_file_paths(request_url):
+    exists = False
+    for path in UPLOAD_FILE_PATHS:
+        if request_url.startswith(path):
+            exists = True
+            break
+    return exists
+
+async def file_upload_middleware(request: Request, call_next: Any) -> Response:
+    if request.method == 'POST' and check_upload_file_paths(request.url.path):
         form = await request.form()
         file = form.get('file')
         if file is None:
