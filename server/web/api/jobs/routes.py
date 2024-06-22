@@ -223,7 +223,7 @@ async def run_train_model(
     await job.update()
     return "Training model"
 
-@api_router.post("/{job_id}/upload/test", tags=["jobs", "models", "results"], summary="Upload test data for model")
+@api_router.post("/upload/test/{job_id}", tags=["jobs", "models", "results"], summary="Upload test data for model")
 async def upload_test_data(
     file: Annotated[UploadFile, File(description="Test data file")],
     job_id: uuid.UUID,
