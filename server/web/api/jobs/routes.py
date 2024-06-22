@@ -230,6 +230,7 @@ async def upload_test_data(
 ) -> str:
     """Upload test data for model."""
     dataset_id = uuid.uuid4()
+    print(dataset_id)
     filename = file.filename
     if filename is None:
         raise HTTPException(status_code=400, detail="No file provided")
