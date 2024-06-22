@@ -46,9 +46,9 @@ def get_app() -> FastAPI:
     #     ValidateUploadFileMiddleware,
     #     max_size=50_000_000,
     # )
-    @app.middleware("http")
-    async def file_validator(request: Request, call_next: Any) -> Any:
-        return await file_upload_middleware(request, call_next)
+    # @app.middleware("http")
+    # async def file_validator(request: Request, call_next: Any) -> Any:
+    #     return await file_upload_middleware(request, call_next)
 
     @app.middleware("http")
     async def check_auth(request: Request, call_next: Any) -> Any:
