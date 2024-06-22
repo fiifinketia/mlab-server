@@ -1,8 +1,7 @@
 from fastapi import status
 from starlette.responses import Response
-from starlette.types import ASGIApp
 from starlette.requests import Request
-from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+from starlette.middleware.base import RequestResponseEndpoint
 from typing import List
 from enum import Enum
 
@@ -58,29 +57,22 @@ class FileTypeName(str, Enum):
         return list(map(lambda c: c.value, cls))
 
 
-class ValidateUploadFileMiddleware(BaseHTTPMiddleware):
-    def __init__(
-        self,
-        app: ASGIApp, max_size: int = 1048576, # 1MB
-        file_types: List[str] = FileTypeName.list()
-    ) -> None:
-        super().__init__(app)
-        self.max_size = max_size
-        self.file_types = file_types
+FILE_TYPES: List[str] = FileTypeName.list()
+MAX_SIZE: int = 50_000_000
 
-    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
-        if request.method == 'POST':
-            form = await request.form()
-            file = form.get('file')
-            if file is None:
-                return Response(status_code=status.HTTP_400_BAD_REQUEST)
-            if isinstance(file, str):
-                raise NotImplementedError("This middleware does not support file str")
-            if file.content_type not in self.file_types:
-                return Response(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
-            if 'content-length' not in request.headers:
-                return Response(status_code=status.HTTP_411_LENGTH_REQUIRED)
-            content_length = int(request.headers['content-length'])
-            if content_length > self.max_size:
-                return Response(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
-        return await call_next(request)
+async def file_upload_middleware(request: Request, call_next: RequestResponseEndpoint) -> Response:
+    if request.method == 'POST':
+        form = await request.form()
+        file = form.get('file')
+        if file is None:
+            return Response(status_code=status.HTTP_400_BAD_REQUEST)
+        if isinstance(file, str):
+            raise NotImplementedError("This middleware does not support file str")
+        if file.content_type not in FILE_TYPES:
+            return Response(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+        if 'content-length' not in request.headers:
+            return Response(status_code=status.HTTP_411_LENGTH_REQUIRED)
+        content_length = int(request.headers['content-length'])
+        if content_length > MAX_SIZE:
+            return Response(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+    return await call_next(request)

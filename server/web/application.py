@@ -11,7 +11,7 @@ from server.services.auth_bearer import JWTPayload, verify_jwt
 from server.settings import settings
 from server.web.api.router import api_router
 from server.web.lifetime import register_shutdown_event, register_startup_event
-from server.web.middleware import ValidateUploadFileMiddleware
+from server.web.middleware import file_upload_middleware
 
 
 def get_app() -> FastAPI:
@@ -46,6 +46,9 @@ def get_app() -> FastAPI:
     #     ValidateUploadFileMiddleware,
     #     max_size=50_000_000,
     # )
+    @app.middleware("http")
+    async def file_validator(request: Request, call_next: Any) -> Any:
+        return file_upload_middleware(request, call_next)
 
     @app.middleware("http")
     async def check_auth(request: Request, call_next: Any) -> Any:
