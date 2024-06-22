@@ -230,17 +230,14 @@ async def upload_test_data(
 ) -> str:
     """Upload test data for model."""
     dataset_id = uuid.uuid4()
-    print(dataset_id)
     filename = file.filename
     if filename is None:
         raise HTTPException(status_code=400, detail="No file provided")
     _, dataset_dir, _ = job_get_dirs(job_id=job_id, dataset_name=str(dataset_id), model_name="")
     filepath = Path(f"{dataset_dir}/{filename}")
-    print(filepath)
     try:
         async with aiofiles.open(filepath, "wb") as buffer:
             while chunk := await file.read(CHUNK_SIZE):
-                print(chunk)
                 await buffer.write(chunk)
     # Catch any errors and delete the file
     except Exception as e:
