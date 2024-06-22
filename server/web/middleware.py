@@ -83,5 +83,4 @@ class ValidateUploadFileMiddleware(BaseHTTPMiddleware):
             content_length = int(request.headers['content-length'])
             if content_length > self.max_size:
                 return Response(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
-            print(file)
         return await call_next(request)

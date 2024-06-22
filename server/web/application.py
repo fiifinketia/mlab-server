@@ -42,10 +42,10 @@ def get_app() -> FastAPI:
         expose_headers=["*"],
     )
 
-    app.add_middleware(
-        ValidateUploadFileMiddleware,
-        max_size=50_000_000,
-    )
+    # app.add_middleware(
+    #     ValidateUploadFileMiddleware,
+    #     max_size=50_000_000,
+    # )
 
     @app.middleware("http")
     async def check_auth(request: Request, call_next: Any) -> Any:
