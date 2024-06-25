@@ -281,7 +281,8 @@ async def run_test_model(
             _,_,model_path = job_get_dirs(job_id=job.id, dataset_name="", model_name=model.git_name)
             pretrained_model_path = f"{model_path}/{model.default_model}"
         case ModelType.pretrained:
-            train_result = await Result.objects.get(id=test_model_in.model.result_id)
+            result_id = uuid.UUID(test_model_in.model.result_id)
+            train_result = await Result.objects.get(id=result_id)
             job_base_dir,_,_ = job_get_dirs(job_id=job.id, dataset_name="", model_name="")
             pretrained_model_path = f"{job_base_dir}/{str(train_result.id)}/{train_result.pretrained_model}"
         case ModelType.custom:
