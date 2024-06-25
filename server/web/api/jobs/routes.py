@@ -270,14 +270,14 @@ async def run_test_model(
         _,dataset_path,_ = job_get_dirs(job_id=job.id, dataset_name=dataset.git_name, model_name="")
     else:
         _,dataset_path,_ = job_get_dirs(job_id=job.id, dataset_name=str(test_model_in.dataset.path), model_name="")
+    model = await Model.objects.get(id=job.model_id, private=False)
+    if model is None and user_id is not None:
+        model = await Model.objects.get(id=job.model_id, private=True, owner_id=user_id)
+        if model is None:
+            raise HTTPException(status_code=404, detail=f"Model {job.model_id} not found")
 
     match test_model_in.model.type:
         case ModelType.default:
-            model = await Model.objects.get(id=job.model_id, private=False)
-            if model is None and user_id is not None:
-                model = await Model.objects.get(id=job.model_id, private=True, owner_id=user_id)
-                if model is None:
-                    raise HTTPException(status_code=404, detail=f"Model {job.model_id} not found")
             _,_,model_path = job_get_dirs(job_id=job.id, dataset_name="", model_name=model.git_name)
             pretrained_model_path = f"{model_path}/{model.default_model}"
         case ModelType.pretrained:
