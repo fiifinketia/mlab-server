@@ -132,7 +132,7 @@ async def test_model(
                         result_id=result_id,
                         user_token=user_token,
                         trained_model=pretrained_model,
-                        api_url=f"{settings.cog_internal_api_url}/results/submit",
+                        api_url=f"{settings.api_url}/results/submit",
                         base_dir=job_base_dir,
                         dataset_dir=dataset_path if dataset_type == "default" else results_dir,
                         job_id=job.id
