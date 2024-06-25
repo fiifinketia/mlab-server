@@ -151,7 +151,7 @@ async def submit_pm_results(
     else:
         form = await request.form()
         metrics = {}
-        predictions = {} # type: ignore
+        predictions = [] # type: ignore
         for key, value in form.items():
             if key.startswith("metrics"):
                 metrics = json.loads(value) # type: ignore
