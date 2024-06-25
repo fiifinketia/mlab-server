@@ -158,8 +158,7 @@ async def submit_pm_results(
             elif key.startswith("pretrained_model"):
                 pretrained_model = str(value)
             elif key.startswith("predictions"):
-                print(value)
-                predictions = list(value) # type: ignore
+                predictions = value # type: ignore
             elif key.startswith("pkg_name"):
                 pkg_name = str(value)
             elif isinstance(value, starlette.datastructures.UploadFile):
