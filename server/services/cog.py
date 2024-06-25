@@ -131,6 +131,7 @@ def build_cli_script(
     dataset_dir = replace_source_with_destination(dataset_dir, base_dir)
     run_script = f"cog train -n {str(job_id)} -i dataset={dataset_dir} -i result_id={result_id} -i api_url={api_url} -i pkg_name={name} -i user_token={user_token}"
     if trained_model is not None:
+        trained_model = replace_source_with_destination(trained_model, base_dir)
         run_script += f" -i trained_model={trained_model}"
     # Mount the base directory
     run_script += f" --mount type=bind,source={base_dir},target={settings.cog_base_dir}"
