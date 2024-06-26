@@ -11,23 +11,16 @@ from server.services.git import GitService
 from server.web.api.utils import job_get_dirs
 from server.settings import settings
 
-def copytree(
+def copyfile(
         src: str,
         dst: str,
-        symlinks: bool=False,
-        ignore: Callable[[str, list[str]], Iterable[str]] | Callable[[Any, list[str]], Iterable[str]] | None = None,
     ) -> None:
     """
-    Copy a directory tree from src to dst.
-
-    This function copies an entire directory tree from source (src) to destination (dst).
-    It uses the shutil.copytree() function for copying directories and shutil.copy2() for copying files.
+    Copy a file from src to dst.
 
     Parameters:
-    - src (str): The source directory path.
+    - src (str): The source file path.
     - dst (str): The destination directory path.
-    - symlinks (bool, optional): If True, symbolic links in the source tree are treated as symbolic links. Defaults to False.
-    - ignore (callable, optional): A function that takes a directory name and a list of filenames in that directory as input and returns a list of filenames to ignore. Defaults to None.
 
     Returns:
     None
@@ -35,14 +28,10 @@ def copytree(
     Raises:
     - Exception: If an error occurs during the copying process.
     """
-    for item in os.listdir(src):
-        s = os.path.join(src, item)
-        d = os.path.join(dst, item)
-        if os.path.isdir(s):
-            shutil.copytree(s, d, symlinks, ignore)
-        else:
-            shutil.copy2(s, d)
-
+    try:
+        shutil.copy(src, dst)
+    except Exception as e:
+        raise Exception(f"Error copying file: {str(e)}")
 
 async def run(
     name: str,
@@ -248,7 +237,7 @@ async def prepare(
     try:
         # run git
         if dataset_type == 'upload':
-            copytree(dataset_name,results_dir)
+            copyfile(dataset_name,results_dir)
         elif dataset_type == 'default':
             git.fetch(repo_name_with_namspace=dataset_name, to=dataset_path, branch= dataset_branch)
         git.fetch(repo_name_with_namspace=model_name, to=model_path, branch= model_branch)

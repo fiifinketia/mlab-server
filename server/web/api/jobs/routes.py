@@ -245,7 +245,7 @@ async def upload_test_data(
         raise HTTPException(status_code=500, detail=str(e)) from e
     finally:
         await file.close()
-    return str(dataset_id)
+    return Path(f"{str(dataset_id)}/{filename}").__str__()
 
 @api_router.post("/test", tags=["jobs", "models", "results"], summary="Run job to test model")
 async def run_test_model(
@@ -286,6 +286,7 @@ async def run_test_model(
             job_base_dir,_,_ = job_get_dirs(job_id=job.id, dataset_name="", model_name="")
             pretrained_model_path = f"{job_base_dir}/{str(train_result.id)}/{train_result.pretrained_model}"
             print(pretrained_model_path)
+            print(train_result)
         case ModelType.custom:
             # model = await Model.objects.get(id=job.model_id)
             # pretrained_model_path = settings.results_dir + "/" + model.path
