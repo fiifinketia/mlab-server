@@ -1,6 +1,7 @@
 """UTILS FOR JOBS API"""
 import datetime
 import os
+from pathlib import Path
 import subprocess
 from typing import Any
 import uuid
@@ -134,7 +135,7 @@ async def test_model(
                         trained_model=pretrained_model,
                         api_url=f"{settings.api_url}/results/submit",
                         base_dir=job_base_dir,
-                        dataset_dir=dataset_path if dataset_type == "default" else results_dir,
+                        dataset_dir=dataset_path if dataset_type == "default" else Path(f"{results_dir}/{dataset_path.split('/')[-2]}/{dataset_path.split('/')[-1]}"),
                         job_id=job.id
                     )
                 except subprocess.CalledProcessError as e:
