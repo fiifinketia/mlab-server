@@ -269,7 +269,10 @@ async def run_test_model(
                 raise HTTPException(status_code=404, detail=f"Dataset {job.dataset_id} not found")
         _,dataset_path,_ = job_get_dirs(job_id=job.id, dataset_name=dataset.git_name, model_name="")
     else:
-        _,dataset_path,_ = job_get_dirs(job_id=job.id, dataset_name=str(test_model_in.dataset.path), model_name="")
+        test_dataset_parent = Path(test_model_in.dataset.path).parent.__str__()
+        _,dataset_path,_ = job_get_dirs(job_id=job.id, dataset_name=test_dataset_parent, model_name="")
+        dataset_path = Path(f"{dataset_path}/{test_model_in.dataset.path.split('/')[-1]}").__str__()
+        print(dataset_path)
     model = await Model.objects.get(id=job.model_id, private=False)
     if model is None and user_id is not None:
         model = await Model.objects.get(id=job.model_id, private=True, owner_id=user_id)
