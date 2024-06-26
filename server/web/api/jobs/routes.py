@@ -272,7 +272,6 @@ async def run_test_model(
         test_dataset_parent = Path(test_model_in.dataset.path).parent.__str__()
         _,dataset_path,_ = job_get_dirs(job_id=job.id, dataset_name=test_dataset_parent, model_name="")
         dataset_path = Path(f"{dataset_path}/{test_model_in.dataset.path.split('/')[-1]}").__str__()
-        print(dataset_path)
     model = await Model.objects.get(id=job.model_id, private=False)
     if model is None and user_id is not None:
         model = await Model.objects.get(id=job.model_id, private=True, owner_id=user_id)
@@ -288,8 +287,6 @@ async def run_test_model(
             train_result = await Result.objects.get(id=result_id)
             job_base_dir,_,_ = job_get_dirs(job_id=job.id, dataset_name="", model_name="")
             pretrained_model_path = f"{job_base_dir}/{str(train_result.id)}/{train_result.pretrained_model}"
-            print(pretrained_model_path)
-            print(train_result)
         case ModelType.custom:
             # model = await Model.objects.get(id=job.model_id)
             # pretrained_model_path = settings.results_dir + "/" + model.path

@@ -35,8 +35,6 @@ async def train_model(
     os.makedirs(results_dir)
     config_path = f"{model_path}/config.train.txt"
 
-    update_config_file(config_path=config_path, parameters=parameters, results_dir=results_dir)
-
     result = await Result.objects.create(
         id=result_id,
         job=job,
@@ -54,6 +52,7 @@ async def train_model(
             case "docker":
                 try:
                     await cg.prepare(job_id=job.id, dataset_name=dataset.git_name, model_name=model.git_name, dataset_type="default")
+                    update_config_file(config_path=config_path, parameters=parameters, results_dir=results_dir)
                     await cg.run(
                         name="pymlab.train",
                         at=model_path,
@@ -93,8 +92,6 @@ async def test_model(
     os.makedirs(results_dir)
     config_path = f"{model_path}/config.test.txt"
 
-    update_config_file(config_path=config_path, parameters=parameters, results_dir=results_dir)
-
     result = await Result.objects.create(
         id=result_id,
         job=job,
@@ -127,6 +124,7 @@ async def test_model(
                         dataset_name=dataset_name,
                         results_dir=results_dir,
                     )
+                    update_config_file(config_path=config_path, parameters=parameters, results_dir=results_dir)
                     await cg.run(
                         name="pymlab.test",
                         at=model_path,
