@@ -135,7 +135,7 @@ async def test_model(
                         trained_model=pretrained_model,
                         api_url=f"{settings.api_url}/results/submit",
                         base_dir=job_base_dir,
-                        dataset_dir=dataset_path if dataset_type == "default" else Path(f"{results_dir}/{dataset_path.split('/')[-2]}/{dataset_path.split('/')[-1]}").__str__(),
+                        dataset_dir=dataset_path if dataset_type == "default" else str(Path(f"{results_dir}/{dataset_path.split('/')[-2]}/{dataset_path.split('/')[-1]}")),
                         job_id=job.id
                     )
                 except subprocess.CalledProcessError as e:
