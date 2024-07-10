@@ -32,30 +32,31 @@ async def get_jobs(user_id: str | None) -> list[Job]:
     return await Job.objects.select_related("results").all(owner_id=user_id, closed=False)
 
 async def create_job(user_id: str, job_in: JobIn) -> None:
+    logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
-    logger.info("Creating job %s", user_id)
+    logger.debug("Creating job %s", user_id)
     job_id = uuid.uuid4()
-    logger.info("Job id: %s", job_id)
+    logger.debug("Job id: %s", job_id)
     try:
-        logger.info(f"Finding public model with id: %s" % job_in.model_id)
+        logger.debug(f"Finding public model with id: %s" % job_in.model_id)
         model = await Model.objects.get(id=job_in.model_id, private=False)
-        logger.info(f"Model with id: {model.id}")
-        logger.info(f"Finding pubblic dataset with id: {job_in.dataset_id}")
+        logger.debug(f"Model with id: {model.id}")
+        logger.debug(f"Finding pubblic dataset with id: {job_in.dataset_id}")
         dataset = await Dataset.objects.get(id=job_in.dataset_id, private=False)
-        logger.info(f"Dataset with id: {dataset.id}")
+        logger.debug(f"Dataset with id: {dataset.id}")
         if model is None and user_id is not None:
-            logger.info(f"No Public Model, checking user models: {user_id}")
+            logger.debug(f"No Public Model, checking user models: {user_id}")
             model = await Model.objects.get(id=job_in.model_id, private=True, owner_id=user_id)
-            logger.info(f"User model found: {user_id}")
+            logger.debug(f"User model found: {user_id}")
         if model is None:
-            logger.info(f"No model found")
+            logger.debug(f"No model found")
             raise HTTPException(status_code=404, detail=f"Model {job_in.model_id} not found")
         if dataset is None and user_id is not None:
-            logger.info(f"No Public Dataset, checking user datasets: {user_id}")
+            logger.debug(f"No Public Dataset, checking user datasets: {user_id}")
             dataset = await Dataset.objects.get(id=job_in.dataset_id, private=True, owner_id=user_id)
-            logger.info(f"User dataset found: {user_id}")
+            logger.debug(f"User dataset found: {user_id}")
         if dataset is None:
-            logger.info(f"No dataset found")
+            logger.debug(f"No dataset found")
             raise HTTPException(status_code=404, detail=f"Dataset {job_in.dataset_id} not found")
     except HTTPException as e:
         raise e

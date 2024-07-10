@@ -43,8 +43,7 @@ async def create_job(
     user_id = req.state.user_id
     # Find model and get path
     try:
-
-        return await jobs_service.create_job(user_id, job_in)
+        await jobs_service.create_job(user_id, job_in)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
