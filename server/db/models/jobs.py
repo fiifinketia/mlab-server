@@ -4,10 +4,11 @@ from typing import Any
 import uuid
 
 import ormar
+from enum import Enum
 
 from server.db.base import BaseMeta
 
-class JobStatus(ormar.Enum):
+class JobStatus(Enum):
     """Enum of Job Status"""
     INITIALIZING = "initializing"
     OCCUPIED = "occupied"
