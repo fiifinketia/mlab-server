@@ -40,7 +40,7 @@ async def create_job(user_id: str, job_in: JobIn) -> None:
         logger.info(f"Finding public model with id: %s" % job_in.model_id)
         model = await Model.objects.get(id=job_in.model_id, private=False)
         logger.info(f"Model with id: {model.id}")
-        logger.info(f"Finding pubblic dataset with id: {job_id.dataset_id}")
+        logger.info(f"Finding pubblic dataset with id: {job_in.dataset_id}")
         dataset = await Dataset.objects.get(id=job_in.dataset_id, private=False)
         logger.info(f"Dataset with id: {dataset.id}")
         if model is None and user_id is not None:
