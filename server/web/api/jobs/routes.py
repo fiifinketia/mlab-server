@@ -2,7 +2,7 @@
 from typing import Annotated, Any
 import uuid
 
-from fastapi import APIRouter, File, Request, UploadFile
+from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 
 from server.db.models.jobs import Job
 from server.web.api.jobs.dto import JobIn, TestModelIn, TrainModelIn
@@ -42,7 +42,11 @@ async def create_job(
     """Create a new job."""
     user_id = req.state.user_id
     # Find model and get path
-    return await jobs_service.create_job(user_id, job_in)
+    try:
+
+        return await jobs_service.create_job(user_id, job_in)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @api_router.post("/train", tags=["jobs", "models", "results"], summary="Run job to train model")
 async def run_train_model(
