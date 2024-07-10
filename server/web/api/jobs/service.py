@@ -33,6 +33,7 @@ async def get_jobs(user_id: str | None) -> list[Job]:
 
 async def create_job(user_id: str, job_in: JobIn) -> None:
     job_id = uuid.uuid4()
+    logger = logging.getLogger(__name__)
     try:
         model = await Model.objects.get(id=job_in.model_id, private=False)
         dataset = await Dataset.objects.get(id=job_in.dataset_id, private=False)
@@ -47,6 +48,7 @@ async def create_job(user_id: str, job_in: JobIn) -> None:
     except HTTPException as e:
         raise e
     except Exception as e:
+        logger.error(f"Error creating job: {e}")
         raise HTTPException(status_code=500) from e
     parameters = job_in.parameters
     if parameters is None:
