@@ -32,8 +32,10 @@ async def get_jobs(user_id: str | None) -> list[Job]:
     return await Job.objects.select_related("results").all(owner_id=user_id, closed=False)
 
 async def create_job(user_id: str, job_in: JobIn) -> None:
-    job_id = uuid.uuid4()
     logger = logging.getLogger(__name__)
+    logger.info("Creating job %s", user_id)
+    job_id = uuid.uuid4()
+    logger.info("Job id: %s", job_id)
     try:
         logger.info(f"Finding public model with id: %s" % job_in.model_id)
         model = await Model.objects.get(id=job_in.model_id, private=False)
