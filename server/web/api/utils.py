@@ -1,13 +1,19 @@
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, List
 import uuid
 from git import PathLike, Repo, Tree
 from fastapi import HTTPException
 
 from server.settings import settings
 
+class ErrorContext:
+    def __init__(self, func: Callable, args= []):
+        self.func = func
+        self.args = args
 
+    def get_bytes(self) -> bytes:
+        return bytes(f"{self.func.__name__}:{str(self.args)}", encoding="utf-8")
 
 def make_git_path(name: str) -> str:
     # use all lower case, replace any spaces with hyphens, and append ".git" to the name.

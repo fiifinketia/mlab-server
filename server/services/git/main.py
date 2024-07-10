@@ -1,4 +1,5 @@
 """A service for interacting with git repositories."""
+import logging
 import os
 from typing import Any, Dict
 from git import List, Repo, RemoteProgress
@@ -6,9 +7,10 @@ from gitlab import Gitlab
 from server.settings import settings
 
 class CloneProgress(RemoteProgress):
+    _logger = logging.getLogger(__name__)
     def update(self, op_code, cur_count, max_count=None, message=''):
         if message:
-            print(message)
+            self._logger.info(message)
 class RepoNotFoundError(Exception):
     """Raised when a repository is not found."""
     pass

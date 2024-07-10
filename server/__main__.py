@@ -6,6 +6,7 @@ from server.settings import settings
 
 def main() -> None:
     """Entrypoint of the application."""
+    # print(settings.reload)
     if settings.reload:
         uvicorn.run(
             "server.web.application:get_app",
@@ -14,6 +15,7 @@ def main() -> None:
             port=settings.port,
             log_level=settings.log_level.value.lower(),
             factory=True,
+            # reload=settings.reload
         )
     else:
         # We choose gunicorn only if reload

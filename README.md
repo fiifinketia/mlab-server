@@ -154,7 +154,11 @@ For running tests on your local machine.
 
 I prefer doing it with docker:
 ```
-docker run -d -p "5432:5432" -e "POSTGRES_PASSWORD=mlab@123" -e "POSTGRES_USER=mlab" -e "POSTGRES_DB=mlab" postgres:13.8-bullseye
+docker run -d -p "5432:5432" -e "POSTGRES_PASSWORD=mlab@123" -e "POSTGRES_USER=mlab" -e "POSTGRES_DB=mlab" -e "PGDATA=/var/lib/postgresql/data/pgdata" -v "/Users/disal/work/disal/mlab/mlab-db:/var/lib/postgresql/data" postgres:13.8-bullseye 
+```
+
+```
+docker run -d -p "6379:6379" redis redis-server --save 60 1 --loglevel warning
 ```
 
 

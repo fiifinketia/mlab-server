@@ -12,6 +12,7 @@ from fastapi import APIRouter, HTTPException, Request, UploadFile, WebSocket
 from fastapi.responses import FileResponse
 from pydantic import BaseModel # pylint: disable=no-name-in-module
 from server.db.models.datasets import Dataset
+from server.db.models.jobs import JobStatus
 from server.db.models.ml_models import Model
 
 from server.db.models.results import Result
@@ -177,7 +178,7 @@ async def submit_pm_results(
 
         result.modified = datetime.datetime.now()
         await result.update()
-    result.job.ready = True
+    result.job.status = JobStatus.READY
     result.job.modified = datetime.datetime.now()
     await result.job.update()
 
