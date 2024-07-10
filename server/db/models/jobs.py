@@ -8,7 +8,7 @@ from enum import Enum
 
 from server.db.base import BaseMeta
 
-class JobStatus(Enum):
+class JobStatus(str,Enum):
     """Enum of Job Status"""
     INITIALIZING = "initializing"
     OCCUPIED = "occupied"
