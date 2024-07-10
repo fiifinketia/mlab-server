@@ -219,7 +219,7 @@ def _stop_job_processes(job_id: uuid.UUID) -> None:
             func=_stop_job_processes,
             args=[job_id]
         )
-        await _handle_job_stop_error(context, e)
+        _handle_job_stop_error(context, e)
 
 
 async def _remove_job_env(job_id: uuid.UUID) -> None:
@@ -234,7 +234,7 @@ async def _remove_job_env(job_id: uuid.UUID) -> None:
             func=_remove_job_env,
             args=[job_id]
         )
-        await _handle_job_remove_error(context, e)
+        _handle_job_remove_error(context, e)
 
 async def _setup_environment(
     job_id: uuid.UUID,
@@ -556,12 +556,12 @@ async def _handle_run_error(context: ErrorContext, e: Any) -> None:
         await job.update()
     return
 
-async def _handle_job_stop_error(context: ErrorContext, e: Any):
+def _handle_job_stop_error(context: ErrorContext, e: Any):
     logger = logging.getLogger(__name__)
     print(e)
     logger.error(f"An error occurred in {context.func.__name__}: {str(e)}")
 
-async def _handle_job_remove_error(context: ErrorContext, e: Any):
+def _handle_job_remove_error(context: ErrorContext, e: Any):
     logger = logging.getLogger(__name__)
     print(e)
     logger.error(f"An error occurred in {context.func.__name__}: {str(e)}")
