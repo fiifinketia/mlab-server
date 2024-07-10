@@ -39,7 +39,7 @@ async def create_job(user_id: str, job_in: JobIn) -> None:
     logger.debug("Job id: %s", job_id)
     try:
         logger.debug(f"Finding public model with id: %s" % job_in.model_id)
-        model_uuid = uuid.UUID(job_in.model_id)
+        model_uuid = uuid.UUID(str(job_in.model_id))
         model = await Model.objects.get(id=model_uuid, private=False)
         logger.debug(f"Model with id: {model.id}")
         logger.debug(f"Finding pubblic dataset with id: {job_in.dataset_id}")
