@@ -40,8 +40,7 @@ async def create_job(user_id: str, job_in: JobIn) -> None:
     try:
         print(f"Finding public model with id: %s" % job_in.model_id)
         model_uuid = uuid.UUID(str(job_in.model_id))
-        print(model_uuid)
-        model = await Model.objects.get(id=model_uuid, private=False)
+        model = await Model.objects.get(id=str(model_uuid))
         print(f"Model with id: {model.id}")
         print(f"Finding pubblic dataset with id: {job_in.dataset_id}")
         dataset = await Dataset.objects.get(id=job_in.dataset_id, private=False)
