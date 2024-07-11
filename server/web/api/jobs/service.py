@@ -268,8 +268,8 @@ async def _setup_environment(
         client = runner.client()
         client.create_task_environment(create_task_request)
         job = await Job.objects.get(id=job_id)
-        print(JobStatus.READY)
-        job.status = JobStatus.READY
+        print(JobStatus.READY.value)
+        job.status = JobStatus.READY.value
         job.modified = datetime.datetime.now()
         job.runner_id = runner.id
         await job.update()
