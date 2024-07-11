@@ -34,13 +34,13 @@ async def get_jobs(user_id: str | None) -> list[Job]:
 async def create_job(user_id: str, job_in: JobIn) -> None:
     # logging.basicConfig(level=logging.CRITICAL)
     # logger = logging.getLogger(__name__)
-    print(job_in)
     print("Creating job %s", user_id)
     job_id = uuid.uuid4()
     print("Job id: %s", job_id)
     try:
         print(f"Finding public model with id: %s" % job_in.model_id)
         model_uuid = uuid.UUID(str(job_in.model_id))
+        print(model_uuid)
         model = await Model.objects.get(id=model_uuid, private=False)
         print(f"Model with id: {model.id}")
         print(f"Finding pubblic dataset with id: {job_in.dataset_id}")
@@ -63,7 +63,8 @@ async def create_job(user_id: str, job_in: JobIn) -> None:
     except HTTPException as e:
         raise e
     except Exception as e:
-        logger.error(f"Error creating job: {e}")
+        print(e)
+        # logger.error(f"Error creating job: {e}")
         raise HTTPException(status_code=500) from e
     parameters = job_in.parameters
     if parameters is None:
