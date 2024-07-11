@@ -267,8 +267,8 @@ async def _setup_environment(
         create_task_request = runner_pb2.CreateTaskRequest(job_id=str(job_id), dataset=dataset, model=model)
         client = runner.client()
         client.create_task_environment(create_task_request)
-        print(create_task_request)
         job = await Job.objects.get(id=job_id)
+        print(job.name)
         job.status = JobStatus.READY
         job.modified = datetime.datetime.now()
         job.runner_id = runner.id
