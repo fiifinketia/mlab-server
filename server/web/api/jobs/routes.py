@@ -45,6 +45,7 @@ async def create_job(
     try:
         await jobs_service.create_job(user_id, job_in)
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=400, detail=str(e))
 
 @api_router.post("/train", tags=["jobs", "models", "results"], summary="Run job to train model")
