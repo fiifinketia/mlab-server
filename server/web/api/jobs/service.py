@@ -36,9 +36,9 @@ async def create_job(user_id: str, job_in: JobIn) -> None:
     job_id = uuid.uuid4()
     try:
         logger.debug(f"Finding public model with id: %s" % job_in.model_id)
-        ml_model = await Model.objects.get(id=job_in.model_id, private=False)
+        ml_model = await Model.objects.get_or_none(id=job_in.model_id, private=False)
         logger.debug(f"Finding pubblic dataset with id: {job_in.dataset_id}")
-        dataset = await Dataset.objects.get(id=job_in.dataset_id, private=False)
+        dataset = await Dataset.objects.get_or_none(id=job_in.dataset_id, private=False)
         if ml_model is None and user_id is not None:
             logger.debug(f"No Public Model, checking user models: {user_id}")
             ml_model = await Model.objects.get(id=job_in.model_id, private=True, owner_id=user_id)
