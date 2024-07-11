@@ -39,17 +39,16 @@ async def create_job(user_id: str, job_in: JobIn) -> None:
     print("Job id: %s", job_id)
     try:
         print(f"Finding public model with id: %s" % job_in.model_id)
-        model_uuid = uuid.UUID(str(job_in.model_id))
-        model = await Model.objects.get(id=str(model_uuid))
-        print(f"Model with id: {model.id}")
+        ml_model = await Model.objects.get(id=job_in.model_id)
+        print(f"Model with id: {ml_model.id}")
         print(f"Finding pubblic dataset with id: {job_in.dataset_id}")
         dataset = await Dataset.objects.get(id=job_in.dataset_id, private=False)
         print(f"Dataset with id: {dataset.id}")
-        if model is None and user_id is not None:
+        if ml_model is None and user_id is not None:
             print(f"No Public Model, checking user models: {user_id}")
-            model = await Model.objects.get(id=job_in.model_id, private=True, owner_id=user_id)
+            ml_model = await Model.objects.get(id=job_in.model_id, private=True, owner_id=user_id)
             print(f"User model found: {user_id}")
-        if model is None:
+        if ml_model is None:
             print(f"No model found")
             raise HTTPException(status_code=404, detail=f"Model {job_in.model_id} not found")
         if dataset is None and user_id is not None:
@@ -67,9 +66,9 @@ async def create_job(user_id: str, job_in: JobIn) -> None:
         raise HTTPException(status_code=500) from e
     parameters = job_in.parameters
     if parameters is None:
-        parameters = model.parameters
+        parameters = ml_model.parameters
     else:
-        parameters = {**model.parameters, **parameters}
+        parameters = {**ml_model.parameters, **parameters}
 
     await Job.objects.create(
         id=job_id,
@@ -78,14 +77,14 @@ async def create_job(user_id: str, job_in: JobIn) -> None:
         owner_id=user_id,
         model_id=job_in.model_id,
         dataset_id=job_in.dataset_id,
-        model_name=model.name,
+        model_name=ml_model.name,
         parameters=parameters,
     )
     # Setup Enviroment for job
     asyncio.create_task(
         _setup_environment(
             job_id=job_id,
-            model_name=model.git_name,
+            model_name=ml_model.git_name,
             dataset_name=dataset.git_name,
         )
     )
