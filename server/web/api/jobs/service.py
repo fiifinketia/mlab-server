@@ -73,13 +73,13 @@ async def create_job(user_id: str, job_in: JobIn) -> None:
         parameters=parameters,
     )
     # Setup Enviroment for job
-    asyncio.create_task(
-        _setup_environment(
+
+    await _setup_environment(
             job_id=job_id,
             model_name=ml_model.git_name,
             dataset_name=dataset.git_name,
         )
-    )
+
 
 async def stop_job(user_id: str, job_id: uuid.UUID) -> None:
     job = await Job.objects.get(id=job_id)
