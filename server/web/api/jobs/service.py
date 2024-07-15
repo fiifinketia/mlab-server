@@ -100,6 +100,7 @@ async def stop_job(user_id: str, job_id: uuid.UUID) -> None:
         HTTPException(status_code=400, detail=f"Failed to stop job {job_id}")
 
 async def close_job(user_id: str, job_id: uuid.UUID) -> None:
+    print("closing")
     job = await Job.objects.get(id=job_id)
     if job.owner_id != user_id:
         raise HTTPException(status_code=403, detail=f"User does not have permission to close job {job_id}")
