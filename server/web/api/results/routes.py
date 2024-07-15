@@ -6,7 +6,7 @@ from pathlib import Path
 import uuid
 import zipfile
 import json
-from typing import Any
+from typing import Any, Optional
 import starlette
 from fastapi import APIRouter, HTTPException, Request, UploadFile, WebSocket
 from fastapi.responses import FileResponse
@@ -71,7 +71,7 @@ class ResultResponse(BaseModel):
     model_description: str
     dataset_name: str
     dataset_description: str
-    pretrained_model: str | None
+    pretrained_model: Optional[str]
 
 
 @api_router.get("/{result_id}", tags=["results"], summary="Get a result", response_model=ResultResponse)

@@ -6,7 +6,7 @@ import logging
 import os
 from pathlib import Path
 import subprocess
-from typing import Any
+from typing import Any, Optional
 import uuid
 import aiofiles
 from fastapi import HTTPException, UploadFile
@@ -25,7 +25,7 @@ from server.web.api.utils import ErrorContext, job_get_dirs
 CHUNK_SIZE = 1024 * 1024
 
 
-async def get_jobs(user_id: str | None) -> list[Job]:
+async def get_jobs(user_id: Optional[str]) -> list[Job]:
     if user_id is None:
         return await Job.objects.select_related("results").all()
     # Add results related to job
@@ -250,8 +250,8 @@ async def _setup_environment(
     dataset_name: str,
     model_name: str,
     environment_type: str = "docker",
-    dataset_branch: str | None = None,
-    model_branch: str | None = None,
+    dataset_branch: Optional[str] = None,
+    model_branch: Optional[str] = None,
 ) -> None:
     """Run environment setup and save the results"""
     try:
@@ -295,8 +295,8 @@ async def _train_model(
     result_name: str,
     environment_type: str = "docker",
     parameters: dict[str, Any] = {},
-    dataset_branch: str | None = None,
-    model_branch: str | None = None,
+    dataset_branch: Optional[str] = None,
+    model_branch: Optional[str] = None,
     # layers: list[Layer] = []
 ) -> Result:
     """Train model with a provided dataset and store results"""
@@ -372,9 +372,9 @@ async def _test_model(
     model_type: str,
     environment_type: str = "docker",
     parameters: dict[str, Any] = {},
-    pretrained_model: str | None = None,
-    dataset_branch: str | None = None,
-    model_branch: str | None = None,
+    pretrained_model: Optional[str] = None,
+    dataset_branch: Optional[str] = None,
+    model_branch: Optional[str] = None,
 ) -> Result:
     """Test model with a provided dataset and store results"""
     job_base_dir, _, model_path = job_get_dirs(job.id, "", model.git_name)

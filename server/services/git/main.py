@@ -54,7 +54,7 @@ class GitService:
         else:
             raise RepoNotFoundError(f"Repository '{repo_name}' already exists.")
 
-    def clone_repo(self, repo_name_with_namspace: str, to: str, branch: str | None = None) -> None:
+    def clone_repo(self, repo_name_with_namspace: str, to: str, branch: Optional[str] = None) -> None:
         """Clone a repository."""
         # check if the repository has been cloned already
         if self.check_exists(repo_name=repo_name_with_namspace):
@@ -120,7 +120,7 @@ class GitService:
         else:
             raise RepoNotFoundError(f"Repository '{repo_name_with_namespace}' does not exist.")
 
-    def check_exists(self, repo_name: str, namespace: str | None = None) -> bool:
+    def check_exists(self, repo_name: str, namespace: Optional[str] = None) -> bool:
         """Check if a repository exists."""
         self.gl.auth()
         try:
@@ -133,7 +133,7 @@ class GitService:
         """Make a clone url."""
         return f"ssh://git@{settings.gitlab_server}:2424/{repo_with_namespace}.git"
 
-    def clone_from(self, url: str, to_path: str, branch: str | None = None, env: dict[str, str] | None = None, progress: RemoteProgress | None = None) -> None:
+    def clone_from(self, url: str, to_path: str, branch: Optional[str] = None, env: dict[str, str] | None = None, progress: RemoteProgress | None = None) -> None:
         """Clone a repository."""
         os.system(f"git config --global user.email disal@admin.git")
         os.system(f"git config --global user.name disal")
@@ -142,7 +142,7 @@ class GitService:
         os.system(f"ssh-keyscan -t rsa {settings.gitlab_server} >> ~/.ssh/known_hosts")
         os.system(f"GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=no'  git clone {url} {to_path}/. --branch {branch} --progress")
 
-    def fetch(self, repo_name_with_namspace: str, to: str, branch: str | None = None) -> None:
+    def fetch(self, repo_name_with_namspace: str, to: str, branch: Optional[str] = None) -> None:
         """Clone a repository."""
         # check if the repository has been cloned already
         self.stash(repo_name_with_namspace=repo_name_with_namspace, to=to)

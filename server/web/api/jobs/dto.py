@@ -29,8 +29,8 @@ class TrainModelIn(BaseModel):
     job_id: uuid.UUID
     parameters: dict[str, Any] = {}
     name: str
-    model_branch: str | None = None
-    dataset_branch: str | None = None
+    model_branch: Optional[str] = None
+    dataset_branch: Optional[str] = None
 
 class ModelType(str,Enum):
     default = "default"
