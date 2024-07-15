@@ -111,9 +111,8 @@ async def close_job(user_id: str, job_id: uuid.UUID) -> None:
     if job.status == JobStatus.OCCUPIED:
         raise HTTPException(status_code=400, detail=f"Job {job_id} has running processes, please stop them first")
     try:
-        await _remove_job_env(job_id=job_id, dataset_name=dataset.git_name, model_name=model.git_name)
+        await _remove_job_env(job_id=job_id)
     except Exception as e:
-        print(e)
         raise HTTPException(status_code=400, detail=f"Failed to remove job environment")
     # job.status = JobStatus.CLOSED
     # job.modified = datetime.datetime.now()
