@@ -1,7 +1,7 @@
 """A service for interacting with git repositories."""
 import logging
 import os
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from git import List, Repo, RemoteProgress
 from gitlab import Gitlab
 from server.settings import settings
@@ -34,7 +34,7 @@ class GitService:
         """Get a project."""
         return self.gl.projects.get(repo_name_with_namespace)
 
-    def create_repo(self, repo_name: str, repo_type: str, username: str, is_private: bool, group_id: str | None = None) -> tuple[str, str]:
+    def create_repo(self, repo_name: str, repo_type: str, username: str, is_private: bool, group_id: Optional[str] = None) -> tuple[str, str]:
         """Create a repository."""
         repo_name = self.format_repo_name(repo_name=repo_name, repo_type=repo_type)
         namespace_id = group_id if group_id is not None else username
