@@ -27,9 +27,9 @@ CHUNK_SIZE = 1024 * 1024
 
 async def get_jobs(user_id: Optional[str]) -> list[Job]:
     if user_id is None:
-        return await Job.objects.select_related("results").filter(status=JobStatus.CLOSED).all(owner_id=user_id)
+        return await Job.objects.select_related("results").filter(status=JobStatus.CLOSED, _exclude=True).all(owner_id=user_id)
     # Add results related to job
-    return await Job.objects.select_related("results").filter(status=JobStatus.CLOSED).all(owner_id=user_id)
+    return await Job.objects.select_related("results").filter(status=JobStatus.CLOSED, _exclude=True).all(owner_id=user_id)
 
 async def create_job(user_id: str, job_in: JobIn) -> None:
     logger = logging.getLogger(__name__)
