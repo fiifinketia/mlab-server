@@ -97,10 +97,9 @@ async def stop_job(user_id: str, job_id: uuid.UUID) -> None:
             result.modified = datetime.datetime.now()
             await result.update()
     except:
-        HTTPException(status_code=400, detail=f"Failed to stop job {job_id}")
+        raise HTTPException(status_code=400, detail=f"Failed to stop job {job_id}")
 
 async def close_job(user_id: str, job_id: uuid.UUID) -> None:
-    print("closing")
     job = await Job.objects.get(id=job_id)
     if job.owner_id != user_id:
         raise HTTPException(status_code=403, detail=f"User does not have permission to close job {job_id}")
@@ -112,9 +111,10 @@ async def close_job(user_id: str, job_id: uuid.UUID) -> None:
     if job.status == JobStatus.OCCUPIED:
         raise HTTPException(status_code=400, detail=f"Job {job_id} has running processes, please stop them first")
     try:
+        print("closing")
         await _remove_job_env(job_id=job_id, dataset_name=dataset.git_name, model_name=model.git_name)
     except:
-        HTTPException(status_code=400, detail=f"Failed to remove job environment")
+        raise HTTPException(status_code=400, detail=f"Failed to remove job environment")
     # job.status = JobStatus.CLOSED
     # job.modified = datetime.datetime.now()
     # await job.update()
