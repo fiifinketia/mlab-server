@@ -1,7 +1,7 @@
 [
     {
-        "base_url": "192.168.1.100",
-        "rpc_port": "50051",
+        "base_url": "rnfce-154-161-0-93.a.free.pinggy.link",
+        "rpc_port": "34887",
         "monitor_port": "5001",
         "id": "2"
     }
