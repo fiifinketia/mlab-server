@@ -41,7 +41,7 @@ class LoadBalancer:
         runners = []
         for runner in self.runners_list:
             # get the address of the runner and send gRPC request to get its status
-            url = f"{runner.get('base_url')}:{runner.get('rpc_port')}"
+            url = f"grpc://{runner.get('base_url')}:{runner.get('rpc_port')}"
             runner_id = runner.get("id")
             if url is None:
                 continue
