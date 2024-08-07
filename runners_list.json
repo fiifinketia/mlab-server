@@ -1,7 +1,7 @@
 [
     {
-        "base_url": "rpc.appatechlab.com",
-        "rpc_port": "8080",
+        "base_url": "154.161.0.93",
+        "rpc_port": "8010",
         "monitor_port": "5001",
         "id": "2"
     }

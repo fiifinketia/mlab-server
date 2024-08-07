@@ -23,13 +23,13 @@ def health_check() -> Any:
     return {"status": "healthy"}
 
 
-@router.get("/grpc")
-async def runners_check() -> Any:
-    """
-    Checks the health of a project.
+# @router.get("/grpc")
+# async def runners_check() -> Any:
+#     """
+#     Checks the health of a project.
 
-    It returns 200 if the project is healthy.
-    """
-    balancer = LoadBalancer()
-    runners = balancer.get_runners()
-    return {"runners": runners}
+#     It returns 200 if the project is healthy.
+#     """
+#     balancer = LoadBalancer()
+#     runners = balancer.get_runners()
+#     return {"runners": runners}
