@@ -1,6 +1,6 @@
 [
     {
-        "base_url": "sysmonitor.appatechlab.com",
+        "base_url": "rpc.appatechlab.com",
         "rpc_port": "8080",
         "monitor_port": "5001",
         "id": "2"
