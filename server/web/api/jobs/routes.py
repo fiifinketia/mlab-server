@@ -70,7 +70,7 @@ class RunJobType(str, Enum):
     TRAIN = "train"
     TEST = "test"
 
-@api_router.post("/{job_type}", tags=["jobs", "models", "results"], summary="Run job to train model")
+@api_router.post("/run/{job_type}", tags=["jobs", "models", "results"], summary="Run job to train model")
 async def run_train_model(
     job_type: RunJobType,
     body: Union[TrainModelIn, TestModelIn],
