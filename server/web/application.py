@@ -33,14 +33,14 @@ def get_app() -> FastAPI:
 
     origins = ["http://localhost:3000", "https://mlab.appatechlab.com:8080", "https://disal.appatechlab.com:8080"]
 
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-        expose_headers=["*"],
-    )
+    # app.add_middleware(
+    #     CORSMiddleware,
+    #     allow_origins=origins,
+    #     allow_credentials=True,
+    #     allow_methods=["*"],
+    #     allow_headers=["*"],
+    #     expose_headers=["*"],
+    # )
 
     # app.add_middleware(
     #     ValidateUploadFileMiddleware,
