@@ -1,4 +1,5 @@
 """Routes for jobs API."""
+<<<<<<< Updated upstream
 import datetime
 from enum import Enum
 import os
@@ -10,14 +11,27 @@ import asyncio
 import aiofiles
 from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 from pydantic import BaseModel
+=======
+from typing import Annotated, Any, Union
+import uuid
+from enum import Enum
+from fastapi import APIRouter, File, HTTPException, Request, UploadFile, Depends
+>>>>>>> Stashed changes
 
 from server.db.models.datasets import Dataset
 from server.db.models.jobs import Job
+<<<<<<< Updated upstream
 from server.db.models.ml_models import Model
 from server.db.models.results import Result
 from server.settings import settings
 from server.web.api.jobs.utils import setup_environment, stop_job_processes, train_model, test_model, remove_job_env
 from server.web.api.utils import job_get_dirs
+=======
+from server.web.api.jobs.dto import JobIn, TestModelIn, TrainModelIn
+from server.web.api.jobs import service as jobs_service
+from server.web.api.billing.service import BillingService
+from server.web.api.billing.dto import CheckBillDTO, Action
+>>>>>>> Stashed changes
 
 api_router = APIRouter()
 
@@ -84,9 +98,10 @@ async def get_jobs(req: Request) -> list[Job]:
     return await Job.objects.select_related("results").all(owner_id=user_id, closed=False)
 
 @api_router.post("/stop", tags=["jobs"], summary="Stop all job processes")
-async def stop_jobs(req: Request, job_id: uuid.UUID) -> None:
+async def stop_jobs(req: Request, job_id: uuid.UUID, billings_service: Annotated[BillingService, Depends(BillingService,use_cache=True)]) -> None:
     """Stop a jobs running processes"""
     user_id = req.state.user_id
+<<<<<<< Updated upstream
     job = await Job.objects.get(id=job_id)
     if job.owner_id!= user_id:
         raise HTTPException(status_code=403, detail=f"User does not have permission to stop job {job_id}")
@@ -103,14 +118,23 @@ async def stop_jobs(req: Request, job_id: uuid.UUID) -> None:
             await result.update()
     except:
         HTTPException(status_code=400, detail=f"Failed to stop job {job_id}")
+=======
+    await jobs_service.stop_job(user_id, job_id)
+    await billings_service.check(
+        CheckBillDTO(action=Action.STOP_JOB, data=job_id),
+        user_id
+    )
+>>>>>>> Stashed changes
 
 @api_router.post("/close", tags=["jobs"], summary="Close a job")
 async def close_job(
     job_id: uuid.UUID,
-    req: Request
+    req: Request,
+    billings_service: Annotated[BillingService, Depends(BillingService, use_cache=True)]
 ) -> None:
     """Close a job."""
     user_id = req.state.user_id
+<<<<<<< Updated upstream
     job = await Job.objects.get(id=job_id)
     if job.owner_id != user_id:
         raise HTTPException(status_code=403, detail=f"User does not have permission to close job {job_id}")
@@ -130,11 +154,19 @@ async def close_job(
     job.closed = True
     job.modified = datetime.datetime.now()
     await job.update()
+=======
+    await jobs_service.close_job(user_id, job_id)
+    await billings_service.check(
+        CheckBillDTO(action=Action.CLOSE_JOB, data=job_id),
+        user_id
+    )
+>>>>>>> Stashed changes
 
 @api_router.post("", tags=["jobs"], summary="Create a new job")
 async def create_job(
     job_in: JobIn,
-    req: Request
+    req: Request,
+    billing_service: Annotated[BillingService, Depends(BillingService, use_cache=True)]
 ) -> None:
     """Create a new job."""
     job_id = uuid.uuid4()
@@ -142,6 +174,7 @@ async def create_job(
     # Find model and get path
     model = None
     try:
+<<<<<<< Updated upstream
         model = await Model.objects.get(id=job_in.model_id, private=False)
         dataset = await Dataset.objects.get(id=job_in.dataset_id, private=False)
         if model is None and user_id is not None:
@@ -189,16 +222,33 @@ async def create_job(
     )
 
 
+=======
+        await jobs_service.create_job(user_id, job_in)
+        await billing_service.check(
+            CheckBillDTO(action=Action.CREATE_JOB, data=job_in.json()),
+            user_id
+        )
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=400, detail=str(e)) from e
+>>>>>>> Stashed changes
 
-@api_router.post("/train", tags=["jobs", "models", "results"], summary="Run job to train model")
+class RunJobType(str, Enum):
+    TRAIN = "train"
+    TEST = "test"
+
+@api_router.post("/{job_type}", tags=["jobs", "models", "results"], summary="Run job to train model")
 async def run_train_model(
-    train_model_in: TrainModelIn,
-    req: Request
+    job_type: RunJobType,
+    body: Union[TrainModelIn, TestModelIn],
+    req: Request,
+    billing_service: Annotated[BillingService, Depends(BillingService, use_cache=True)]
 ) -> Any:
     """Run job to train model."""
     user_id = req.state.user_id
     user_token = req.state.user_token
     # Check if job is ready
+<<<<<<< Updated upstream
     job = await Job.objects.get(id=train_model_in.job_id, owner_id=user_id)
     if not job.ready:
         raise HTTPException(status_code=400, detail=f"Job {train_model_in.job_id} is not ready")
@@ -222,13 +272,39 @@ async def run_train_model(
     job.modified = datetime.datetime.now()
     await job.update()
     return "Training model"
+=======
+    match job_type:
+        case RunJobType.TRAIN:
+            if not isinstance(body, TrainModelIn):
+                raise HTTPException(status_code=400, detail="Invalid train model input")
+            train = await jobs_service.train(user_id, body)
+            await billing_service.check(
+                CheckBillDTO(action=Action.RUN_JOB, data=body.json()),
+                user_id
+            )
+            return train
+        case RunJobType.TEST:
+            if not isinstance(body, TestModelIn):
+                raise HTTPException(status_code=400, detail="Invalid test model input")
+            test = await jobs_service.test(user_id, body)
+            await billing_service.check(
+                CheckBillDTO(action=Action.RUN_JOB, data=body.json()),
+                user_id
+            )
+            return test
+        case _:
+            raise HTTPException(status_code=400, detail="Invalid job type")
+>>>>>>> Stashed changes
 
 @api_router.post("/upload/test/{job_id}", tags=["jobs", "models", "results"], summary="Upload test data for model")
 async def upload_test_data(
     file: Annotated[UploadFile, File(description="Test data file")],
     job_id: uuid.UUID,
+    req: Request,
+    billing_service: Annotated[BillingService, Depends(BillingService, use_cache=True)]
 ) -> str:
     """Upload test data for model."""
+<<<<<<< Updated upstream
     dataset_id = uuid.uuid4()
     filename = file.filename
     if filename is None:
@@ -311,3 +387,13 @@ async def run_test_model(
     return "Testing model"
 
 # TODO: Add stop job route
+=======
+    user_id = req.state.user_id
+    # Upload file and get path
+    uploaded_file = await jobs_service.upload_file(file, job_id)
+    await billing_service.check(
+        CheckBillDTO(action=Action.UPLOAD_TEST_JOB, data=job_id),
+        user_id
+    )
+    return uploaded_file
+>>>>>>> Stashed changes
