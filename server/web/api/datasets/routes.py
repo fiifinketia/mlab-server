@@ -1,12 +1,17 @@
 """Routes for jobs API."""
 import uuid
-from fastapi import APIRouter, HTTPException, Form, Request
+from fastapi import APIRouter, HTTPException, Form, Request, Depends
 from pydantic import ValidationError
+from typing import Annotated
+
 # from server.db.models.jobs import Job
 # from server.db.models.ml_models import Model
 from server.db.models.datasets import Dataset
 from server.web.api.datasets.dto import DatasetInForm, DatasetResponse
 from server.services.git import GitService, RepoNotFoundError, RepoTypes
+from server.web.api.billing.service import BillingService
+from server.web.api.billing.dto import CheckBillDTO, Action
+
 
 api_router = APIRouter()
 
@@ -56,7 +61,8 @@ async def fetch_dataset(dataset_id: str, req: Request) -> DatasetResponse:
 @api_router.post("", tags=["datasets"], summary="Upload a new dataset")
 async def create_dataset(
         dataset_in: DatasetInForm,
-        req: Request
+        req: Request,
+        billing_service: Annotated[BillingService, Depends(BillingService, use_cache=True)]
     ) -> Dataset:
     """Upload a new dataset."""
     user_id = req.state.user_id
@@ -84,6 +90,11 @@ async def create_dataset(
             )
         except ValidationError as e:
             raise HTTPException(status_code=400, detail=str(e)) from e
+        check_bill_dto = CheckBillDTO(
+            action=Action.CREATE_DATASET,
+            data=dataset.json()
+        )
+        await billing_service.check(check_bill_dto, user_id)
     except Exception as e:
         raise e
 

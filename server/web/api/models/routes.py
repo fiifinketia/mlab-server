@@ -1,14 +1,17 @@
 """Routes for models API."""
-from typing import Any
+from logging import Logger
+from typing import Any, Annotated
 import uuid
 
 from pydantic import BaseModel
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 
 from server.db.models.ml_models import Model
 from server.web.api.models.dto import ModelResponse
 from server.services.git import GitService, RepoNotFoundError, RepoTypes
+from server.web.api.billing.service import BillingService
+from server.web.api.billing.dto import Action, CheckBillDTO
 
 api_router = APIRouter()
 
@@ -70,7 +73,9 @@ async def get_modle(model_id: str, req: Request) -> ModelResponse:
 @api_router.post("", tags=["models"], summary="Create a new model")
 async def create_model(
     create_model_request: CreateModelRequest,
-    req: Request
+    req: Request,
+    billing_service: Annotated[BillingService, Depends(BillingService, use_cache=True)],
+    # logger: Annotated[Logger, Depends(Logger(__name__), use_cache=True)]
 ) -> Model:
     """Create a new model."""
     model_id = uuid.uuid4()
@@ -96,8 +101,15 @@ async def create_model(
             parameters=create_model_request.parameters,
             private=create_model_request.private,
         )
+        check_bill_dto = CheckBillDTO(
+            action=Action.CREATE_MODEL,
+            data=model.json()
+        )
+        await billing_service.check(check_bill_dto, user_id)
     except RepoNotFoundError:
         raise HTTPException(status_code=400, detail="Repository not created")
+    except Exception as e:
+        print("Error creating repository: %s", e)
     return model
 
 @api_router.delete("/{model_id}", tags=["models"], summary="Delete a model")
