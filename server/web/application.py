@@ -31,7 +31,7 @@ def get_app() -> FastAPI:
         default_response_class=UJSONResponse,
     )
 
-    origins = ["*", "https://mlab.appatechlab.com:8080", "https://disal.appatechlab.com:8080"]
+    origins = ["http://localhost:3000", "https://mlab.appatechlab.com:8080", "https://disal.appatechlab.com:8080"]
 
     app.add_middleware(
         CORSMiddleware,
