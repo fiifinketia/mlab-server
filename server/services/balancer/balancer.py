@@ -88,7 +88,7 @@ class LoadBalancer:
     def _fetch_runners(self) -> Any:
         """Fetch runners via http request"""
         try:
-            res = requests.get(settings.get_runners_url, timeout=120)
+            res = requests.get(settings.get_runners_url, timeout=120, verify=False)
             if res.status_code == 200:
                 return res.json()
         except requests.exceptions.RequestException as e:
