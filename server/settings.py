@@ -94,7 +94,7 @@ class Settings(BaseSettings):
     @property
     def get_runners_url(self) -> str:
         """Returns str"""
-        return f"{self.api_url}/runners"
+        return f"{self.api_url}/api/runners"
 
     @property
     def db_url(self) -> URL:
