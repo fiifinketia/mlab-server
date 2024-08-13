@@ -44,7 +44,6 @@ class LoadBalancer:
             # get the address of the runner and send gRPC request to get its status
             try:
                 c_runner = Runner(id=str(key), url=value.get("content"))
-                print(c_runner)
                 runners.append(c_runner)
             except RpcError as e:
                 self._logger.error(f"Error connecting to runner at {url}: {e}")
@@ -63,10 +62,9 @@ class LoadBalancer:
             raise e
 
     def find(self, runner_id):
-        for runner in self.runners_list:
-            if runner["id"] == runner_id:
-                url = f"{runner.get('base_url')}:{runner.get('rpc_port')}"
-                return Runner(id=runner["id"], url=url)
+        for key, value in self._fetch_runners().items():
+            if key == runner_id:
+                return Runner(id=key, url=value.get("content"))
             else:
                 continue
         return None
