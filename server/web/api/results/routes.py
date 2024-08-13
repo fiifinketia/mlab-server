@@ -21,7 +21,7 @@ from server.web.api.utils import get_files_in_path, job_get_dirs
 
 api_router = APIRouter()
 
-@api_router.get("/", tags=["results"], summary="Get all results")
+@api_router.get("", tags=["results"], summary="Get all results")
 async def get_results(req: Request) -> list[dict[str, Any]]:
     """Get all results for a user."""
     user_id = req.state.user_id
