@@ -92,6 +92,11 @@ class Settings(BaseSettings):
     # sudo_password: str = os.getenv("SUDO_PASSWORD", "")
 
     @property
+    def get_runners_url(self) -> str:
+        """Returns str"""
+        return f"{self.api_url}/runners"
+
+    @property
     def db_url(self) -> URL:
         """
         Assemble database URL from settings.
