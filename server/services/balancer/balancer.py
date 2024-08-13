@@ -13,6 +13,7 @@ from typing import Any, List, Dict, Union
 from grpc import ChannelConnectivity
 import grpc.aio as grpc
 from grpc import RpcError
+import requests
 # from grpc.aio import grpc
 from server.services.balancer.runner import Runner
 from server.settings import settings
@@ -39,14 +40,11 @@ class LoadBalancer:
 
     def get_runners(self) -> List[Runner]:
         runners = []
-        for runner in self.runners_list:
+        for key, value in self._fetch_runners().items():
             # get the address of the runner and send gRPC request to get its status
-            url = f"{runner.get('base_url')}:{runner.get('rpc_port')}"
-            runner_id = runner.get("id")
-            if url is None:
-                continue
             try:
-                c_runner = Runner(id=str(runner_id), url=url)
+                c_runner = Runner(id=str(key), url=value.content)
+                print(c_runner)
                 runners.append(c_runner)
             except RpcError as e:
                 self._logger.error(f"Error connecting to runner at {url}: {e}")
@@ -86,3 +84,13 @@ class LoadBalancer:
     async def add2_retry_queue(self, context: ErrorContext) -> None:
         """Add context to retry queue."""
         await self.queue_manager.add(self.retry_queue, context.get_bytes())
+
+    def _fetch_runners(self):
+        """Fetch runners via http request"""
+        try:
+            res = requests.get(settings.get_runners_url)
+            if res.status_code == 200:
+                return res.json()
+        except requests.exceptions.RequestException as e:
+            self._logger.error(f"Error fetching runners: {e}")
+        return {}

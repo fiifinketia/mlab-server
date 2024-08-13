@@ -8,7 +8,7 @@ import zipfile
 import json
 from typing import Any, Optional
 import starlette
-from fastapi import APIRouter, HTTPException, Request, UploadFile, WebSocket
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel # pylint: disable=no-name-in-module
 from server.db.models.datasets import Dataset
