@@ -43,7 +43,7 @@ class LoadBalancer:
         for key, value in self._fetch_runners().items():
             # get the address of the runner and send gRPC request to get its status
             try:
-                c_runner = Runner(id=str(key), url=value.content)
+                c_runner = Runner(id=str(key), url=value.get("content"))
                 print(c_runner)
                 runners.append(c_runner)
             except RpcError as e:
@@ -85,10 +85,10 @@ class LoadBalancer:
         """Add context to retry queue."""
         await self.queue_manager.add(self.retry_queue, context.get_bytes())
 
-    def _fetch_runners(self):
+    def _fetch_runners(self) -> Any:
         """Fetch runners via http request"""
         try:
-            res = requests.get(settings.get_runners_url)
+            res = requests.get(settings.get_runners_url, timeout=120)
             if res.status_code == 200:
                 return res.json()
         except requests.exceptions.RequestException as e:
