@@ -38,12 +38,27 @@ class LoadBalancer:
             runners_list = json.load(file)
         return runners_list
 
-    def get_runners(self) -> List[Runner]:
+    def _get_runners(self) -> List[Runner]:
         runners = []
         for key, value in self._fetch_runners().items():
             # get the address of the runner and send gRPC request to get its status
             try:
-                c_runner = Runner(id=str(key), url=value.get("content"))
+                c_runner = Runner(id=key, url=value.get("content"))
+                runners.append(c_runner)
+            except RpcError as e:
+                self._logger.error(f"Error connecting to runner at {value.key("content")}: {e}")
+        return runners
+
+    def get_runners(self) -> List[Runner]:
+        runners = []
+        for runner in self.runners_list:
+            # get the address of the runner and send gRPC request to get its status
+            url = f"{runner.get('base_url')}:{runner.get('rpc_port')}"
+            runner_id = runner.get("id")
+            if url is None:
+                continue
+            try:
+                c_runner = Runner(id=str(runner_id), url=url)
                 runners.append(c_runner)
             except RpcError as e:
                 self._logger.error(f"Error connecting to runner at {url}: {e}")
