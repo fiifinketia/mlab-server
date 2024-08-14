@@ -38,7 +38,7 @@ class LoadBalancer:
             runners_list = json.load(file)
         return runners_list
 
-    def _get_runners(self) -> List[Runner]:
+    def get_runners(self) -> List[Runner]:
         runners = []
         for key, value in self._fetch_runners().items():
             # get the address of the runner and send gRPC request to get its status
@@ -49,7 +49,7 @@ class LoadBalancer:
                 self._logger.error(f"Error connecting to runner at {value.key("content")}: {e}")
         return runners
 
-    def get_runners(self) -> List[Runner]:
+    def old_get_runners(self) -> List[Runner]:
         runners = []
         for runner in self.runners_list:
             # get the address of the runner and send gRPC request to get its status
