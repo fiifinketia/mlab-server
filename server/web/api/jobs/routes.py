@@ -8,7 +8,8 @@ from server.db.models.jobs import Job
 from server.web.api.jobs.dto import JobIn, TestModelIn, TrainModelIn
 from server.web.api.jobs import service as jobs_service
 from server.web.api.billing.service import BillingService
-from server.web.api.billing.dto import CheckBillDTO, Action
+from server.web.api.billing.dto import CheckBillDTO
+from server.db.models.billings import Action
 
 
 api_router = APIRouter()

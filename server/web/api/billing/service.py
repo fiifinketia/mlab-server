@@ -1,5 +1,7 @@
 """Billings Service"""
-from server.web.api.billing.dto import BalanceBillDTO, Action, CheckBillDTO
+from typing import List
+from server.web.api.billing.dto import BalanceBillDTO, CheckBillDTO, CheckoutResponse
+from server.db.models.billings import Action, Billing, BillingStatus
 
 class BillingService:
 
@@ -46,6 +48,12 @@ class BillingService:
                 pass
             case _:
                 pass
+
+    async def checkout(self, user_id: str, user_email: str) -> CheckoutResponse:
+        """Checkout bill for user."""
+        billings = await Billing.objects.filter(user_id=user_id, status=BillingStatus.PENDING).all()
+        total_amount = sum(b.amount for b in billings)
+        return CheckoutResponse(user_email=user_email, amount=total_amount)
 
     def _create_project_balance(self, dto: BalanceBillDTO, user_id: str) -> bool:
         """Create project balance."""

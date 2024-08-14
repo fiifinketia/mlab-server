@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Request, HTTPException, status
 
 from server.web.api.billing.service import BillingService
-from server.web.api.billing.dto import BalanceBillDTO, CheckBillDTO
+from server.web.api.billing.dto import BalanceBillDTO, CheckBillDTO, CheckoutResponse
 
 
 api_router = APIRouter()
@@ -46,7 +46,7 @@ async def check_bill(
     billing_service: Annotated[BillingService, Depends(BillingService, use_cache=True)]
 ) -> None:
     """
-    Checkout the user's action and billthe user
+    Check the user's action and create bill
 
     Parameters:
     req (Request): The FastAPI Request object, which contains information about the incoming request.
@@ -58,3 +58,28 @@ async def check_bill(
     """
     user_id = req.state.user_id
     await billing_service.check(body, user_id)
+
+
+@api_router.post(
+    "/checkout",
+    tags=["billings"],
+    summary="Checkout the user's bill"
+)
+async def checkout_bill(
+    req: Request,
+    user_email: str,
+    billing_service: Annotated[BillingService, Depends(BillingService, use_cache=True)]
+) -> CheckoutResponse:
+    """
+    Checkout the user's bill
+
+    Parameters:
+    req (Request): The FastAPI Request object, which contains information about the incoming request.
+    user_email (str): The email of the user for which the bill needs to be checked out.
+    billing_service (BillingService): An instance of the BillingService class, used to perform bill checkout.
+    Returns:
+    CheckoutResponse: A response object containing the user's email and total amount for the bill.
+    """
+    user_id = req.state.user_id
+    return await billing_service.checkout(user_id, user_email)
+

@@ -11,7 +11,8 @@ from server.db.models.ml_models import Model
 from server.web.api.models.dto import ModelResponse
 from server.services.git import GitService, RepoNotFoundError, RepoTypes
 from server.web.api.billing.service import BillingService
-from server.web.api.billing.dto import Action, CheckBillDTO
+from server.web.api.billing.dto import CheckBillDTO
+from server.db.models.billings import Action
 
 api_router = APIRouter()
 
