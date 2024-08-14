@@ -55,6 +55,10 @@ class BillingService:
         total_amount = sum(b.amount for b in billings)
         return CheckoutResponse(user_email=user_email, amount=total_amount)
 
+    async def get_billings(self, user_id: str) ->List[Billing]:
+        """Get billings for user."""
+        return await Billing.objects.filter(user_id=user_id).all()
+
     def _create_project_balance(self, dto: BalanceBillDTO, user_id: str) -> bool:
         """Create project balance."""
         return True

@@ -1,7 +1,8 @@
 """Billings API"""
-from typing import Annotated
+from typing import Annotated, List
 from fastapi import APIRouter, Depends, Request, HTTPException, status
 
+from server.db.models.billings import Billing
 from server.web.api.billing.service import BillingService
 from server.web.api.billing.dto import BalanceBillDTO, CheckBillDTO, CheckoutResponse
 
@@ -83,3 +84,24 @@ async def checkout_bill(
     user_id = req.state.user_id
     return await billing_service.checkout(user_id, user_email)
 
+@api_router.get(
+    "",
+    tags=["billings"],
+    summary="Get all billings"
+)
+async def get_billings(
+    req: Request,
+    billing_service: Annotated[BillingService, Depends(BillingService, use_cache=True)]
+) -> List[Billing]:
+    """
+    Get all billings
+
+    Parameters:
+    req (Request): The FastAPI Request object, which contains information about the incoming request.
+    billing_service (BillingService): An instance of the BillingService class, used to retrieve all billings.
+
+    Returns:
+    List[Billing]: A list of all billings.
+    """
+    user_id = req.state.user_id
+    return await billing_service.get_all_billings(user_id)
