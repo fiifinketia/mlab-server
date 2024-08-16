@@ -67,6 +67,7 @@ def get_app() -> FastAPI:
                 request.state.user_token = token
             except:
                 raise HTTPException(status_code=403, detail="Invalid authorization code.")
+            print(request.query_params.items())
             return await call_next(request)
         # check if headers has x-api-key
         if request.headers.get("x-api-key") == settings.x_api_key:
