@@ -20,9 +20,6 @@ services:
     ports:
       # Exposes application port.
     - ${PORT}:${PORT}
-    depends_on:
-      redis:
-        condition: service_healthy
     environment:
       SERVER_HOST: ${HOST}
       SERVER_DB_HOST: ${DB_HOST}
