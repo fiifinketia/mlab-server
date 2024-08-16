@@ -104,4 +104,4 @@ async def get_billings(
     List[Billing]: A list of all billings.
     """
     user_id = req.state.user_id
-    return await billing_service.get_all_billings(user_id)
+    return await billing_service.get_billings(user_id)
