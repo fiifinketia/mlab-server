@@ -26,17 +26,17 @@ class LoadBalancer:
     def __init__(self) -> None:
         self.queue_manager = QueueManager()
         # load list from json file
-        self.runners_list = self.load_runners_list()
+        # self.runners_list = self.load_runners_list()
         self.queue_name = "load_balancer_queue"
         self.retry_queue = "retry_queue"
         self._logger = logging.getLogger(__name__)
 
-    @staticmethod
-    def load_runners_list() -> List[Dict[str, Union[str, int]]]:
-        """Load list of runners from json file."""
-        with open(settings.runners_list_path, "r") as file:
-            runners_list = json.load(file)
-        return runners_list
+    # @staticmethod
+    # def load_runners_list() -> List[Dict[str, Union[str, int]]]:
+    #     """Load list of runners from json file."""
+    #     with open(settings.runners_list_path, "r") as file:
+    #         runners_list = json.load(file)
+    #     return runners_list
 
     def get_runners(self) -> List[Runner]:
         runners = []
@@ -49,20 +49,20 @@ class LoadBalancer:
                 self._logger.error(f"Error connecting to runner at {value.key("content")}: {e}")
         return runners
 
-    def old_get_runners(self) -> List[Runner]:
-        runners = []
-        for runner in self.runners_list:
-            # get the address of the runner and send gRPC request to get its status
-            url = f"{runner.get('base_url')}:{runner.get('rpc_port')}"
-            runner_id = runner.get("id")
-            if url is None:
-                continue
-            try:
-                c_runner = Runner(id=str(runner_id), url=url)
-                runners.append(c_runner)
-            except RpcError as e:
-                self._logger.error(f"Error connecting to runner at {url}: {e}")
-        return runners
+    # def old_get_runners(self) -> List[Runner]:
+    #     runners = []
+    #     for runner in self.runners_list:
+    #         # get the address of the runner and send gRPC request to get its status
+    #         url = f"{runner.get('base_url')}:{runner.get('rpc_port')}"
+    #         runner_id = runner.get("id")
+    #         if url is None:
+    #             continue
+    #         try:
+    #             c_runner = Runner(id=str(runner_id), url=url)
+    #             runners.append(c_runner)
+    #         except RpcError as e:
+    #             self._logger.error(f"Error connecting to runner at {url}: {e}")
+    #     return runners
 
     def get_available_runner(self) -> Runner:
         try:

@@ -39,15 +39,12 @@ class Settings(BaseSettings):
     # Enable uvicorn reloading
     reload: bool = False
 
-    ssh_keys_path: str = "/root/.ssh"
 
     api_url: str = os.getenv("API_URL", "http://localhost:8000")
     rpc_url: str = os.getenv("RPC_URL", "localhost:50051")
     cog_internal_api_url: str = os.getenv("COG_INTERNAL_API_URL", "http://host.docker.internal:8090/api")
 
     x_api_key: str = os.getenv("X_API_KEY", "")
-
-    image_storage: str = os.getenv("IMAGE_STORAGE", "/var/lib/docker/volumes/filez/images")
 
     # Current environment
     environment: str = os.getenv("ENVIRONMENT", "dev")
@@ -83,18 +80,22 @@ class Settings(BaseSettings):
 
     cog_base_dir = os.getenv("COG_BASE_DIR", "/var/lib/docker/volumes/filez")
 
-    results_dir: str = os.getenv("RESULTS_DIR", "/var/lib/docker/volumes/filez/results")
+    filez_dir: str = os.getenv("FILEZ_DIR", "/var/lib/docker/volumes/filez")
 
-    runners_list_path: str = os.getenv("RUNNERS_LIST", "/var/lib/docker/volumes/filez/runners.json")
-    # datasets_dir: str = git_user_path + "/datasets"
-    # models_dir: str = git_user_path + "/models"
 
-    # sudo_password: str = os.getenv("SUDO_PASSWORD", "")
 
     @property
     def get_runners_url(self) -> str:
         """Returns str"""
         return f"{self.api_url}/api/runners"
+
+    @property
+    def results_dir(self) -> str:
+        return f"{self.filez_dir}/results"
+
+    @property
+    def image_storage(self) -> str:
+        return f"{self.filez_dir}/images"
 
     @property
     def db_url(self) -> URL:
