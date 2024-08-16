@@ -46,7 +46,7 @@ class LoadBalancer:
                 c_runner = Runner(id=key, url=value.get("content"))
                 runners.append(c_runner)
             except RpcError as e:
-                self._logger.error(f"Error connecting to runner at {value.key("content")}: {e}")
+                self._logger.error(f"Error connecting to runner at {value.key('content')}: {e}")
         return runners
 
     # def old_get_runners(self) -> List[Runner]:
