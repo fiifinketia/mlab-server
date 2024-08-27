@@ -29,7 +29,7 @@ class BillingStatus(str, Enum):
 
 
 class Billing(ormar.Model):
-    """Model for User Key Pair."""
+    """Model for Billing"""
 
     class Meta(BaseMeta):
         tablename = "billings"
